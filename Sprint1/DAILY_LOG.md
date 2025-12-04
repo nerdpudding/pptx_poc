@@ -3,6 +3,13 @@
 > **Task tracking:** See [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md) for the full task list
 > **Sprint overview:** See [SPRINT1_PLAN.md](SPRINT1_PLAN.md) for goals and phases
 
+## Development Philosophy: Container-First
+
+> **All services run in Docker containers.**
+> - Write code + Dockerfile together
+> - Test with `docker-compose up <service>`
+> - Full stack: `docker-compose up`
+
 ---
 
 ## Current Sprint Status
@@ -13,19 +20,18 @@
 ### Phase Progress
 | Phase | Status | Progress |
 |-------|--------|----------|
-| Planning | Complete | 100% |
-| Frontend | Not Started | 0% |
-| Backend | Not Started | 0% |
-| PPTX Generator | Not Started | 0% |
-| Docker | Not Started | 0% |
-| Testing | Not Started | 0% |
+| Project Setup | Not Started | 0% |
+| Backend + Container | Not Started | 0% |
+| PPTX Generator + Container | Not Started | 0% |
+| Frontend + Container | Not Started | 0% |
+| Integration & Testing | Not Started | 0% |
 
 ### Progress Visualization
 
 ```mermaid
 pie title Sprint 1 Progress
     "Completed" : 0
-    "Remaining" : 90
+    "Remaining" : 78
 ```
 
 ---
@@ -41,22 +47,15 @@ pie title Sprint 1 Progress
 - [ ] Task 1 - [Time spent]
 - [ ] Task 2 - [Time spent]
 
-#### Tasks Planned for Tomorrow
-- [ ] Task 1
-- [ ] Task 2
+#### Container Testing
+- [ ] `docker-compose build <service>` - Success/Fail
+- [ ] `docker-compose up <service>` - Success/Fail
 
 #### Blockers
 - None / [Description + Resolution plan]
 
 #### Learnings
 - [Key insight or discovery]
-
-#### Metrics
-| Metric | Value |
-|--------|-------|
-| Time spent | X hours |
-| Tasks completed | X |
-| Lines of code | X |
 
 ---
 
@@ -71,12 +70,10 @@ pie title Sprint 1 Progress
 - Major accomplishment 1
 - Major accomplishment 2
 
-#### In Progress
-- Task in progress 1
-- Task in progress 2
-
-#### Blocked
-- None / [Blocker + owner]
+#### Containers Running
+- [ ] orchestrator
+- [ ] pptx-generator
+- [ ] frontend
 
 #### Next Week Focus
 - Priority 1
@@ -90,11 +87,11 @@ pie title Sprint 1 Progress
 
 **Yesterday:**
 - Completed X
-- Completed Y
+- Tested container Y
 
 **Today:**
 - Working on X
-- Working on Y
+- Will test with `docker-compose up`
 
 **Blockers:**
 - None / [Description]
@@ -108,46 +105,52 @@ pie title Sprint 1 Progress
 |--------|--------|---------|--------|
 | Response time | < 30s | - | - |
 | Docker image size | < 200MB | - | - |
-| Test pass rate | 90% | - | - |
+| All containers healthy | Yes | - | - |
 
 ### Delivery Metrics
 | Metric | Target | Current |
 |--------|--------|---------|
-| Tasks completed | 90 | 0 |
+| Tasks completed | 78 | 0 |
 | Sprint completion | 100% | 0% |
 
 ---
 
-## Retrospective Preparation
+## Useful Commands
 
-### Questions to Answer at Sprint End
-1. What went well?
-2. What could have gone better?
-3. What should we start doing?
-4. What should we stop doing?
-5. What should we continue doing?
-6. What were the biggest challenges?
-7. What did we learn?
+```bash
+# Build all containers
+docker-compose build
 
-### Action Items
-- [ ] Action 1 - [Owner]
-- [ ] Action 2 - [Owner]
+# Build specific service
+docker-compose build orchestrator
 
----
+# Run specific service
+docker-compose up orchestrator
 
-## Daily Routines
+# Run all services
+docker-compose up
 
-### Morning
-- [ ] Review yesterday's progress
-- [ ] Check [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md) for next task
-- [ ] Plan today's work
-- [ ] Update this log
+# Run in background
+docker-compose up -d
 
-### Evening
-- [ ] Update task completion in checklist
-- [ ] Log time spent
-- [ ] Document learnings
-- [ ] Plan for tomorrow
+# View logs
+docker-compose logs -f
+
+# Check status
+docker-compose ps
+
+# Stop all
+docker-compose down
+
+# Clean up (including volumes)
+docker-compose down -v
+
+# Test endpoints
+curl http://localhost:5000/health
+curl -X POST http://localhost:5000/api/v1/generate \
+  -H "Content-Type: application/json" \
+  -d '{"topic": "Test Presentation"}'
+```
 
 ---
 
@@ -156,28 +159,12 @@ pie title Sprint 1 Progress
 ### Technical Decisions
 | Decision | Date | Rationale |
 |----------|------|-----------|
-| - | - | - |
+| Container-first development | 2025-12-04 | All services run in Docker containers |
 
 ### Lessons Learned
 | Lesson | Date | Impact |
 |--------|------|--------|
 | - | - | - |
-
-### Useful Commands
-```bash
-# Build and run containers
-docker-compose build
-docker-compose up -d
-
-# Check container status
-docker-compose ps
-
-# View logs
-docker-compose logs -f
-
-# Clean up
-docker-compose down -v
-```
 
 ---
 
@@ -186,9 +173,9 @@ docker-compose down -v
 **Traffic Light:** Green / Yellow / Red
 
 ```
-Overall:  [          ] 0%
-Frontend: [          ] 0%
-Backend:  [          ] 0%
-PPTX:     [          ] 0%
-Docker:   [          ] 0%
+Overall:   [          ] 0%
+Setup:     [          ] 0%
+Backend:   [          ] 0%
+PPTX:      [          ] 0%
+Frontend:  [          ] 0%
 ```

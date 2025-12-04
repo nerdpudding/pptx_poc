@@ -6,12 +6,25 @@
 **Objective:** Implement the core PowerPoint generation functionality based on Sprint 0 research and planning
 **Status:** Planning Complete | Implementation Not Started
 
+## Development Philosophy: Container-First
+
+> **All services run in Docker containers from day one.**
+> No need to install Python, Node, etc. locally - just Docker.
+
+For each component:
+1. Write the code
+2. Create the Dockerfile immediately
+3. Add to docker-compose.yml
+4. Build and test via `docker-compose up`
+
+---
+
 ## Sprint Goals
 
 ### Primary Goals
 1. **Working frontend interface** - User can input presentation topic and download PPTX
 2. **Functional backend API** - Processes requests and generates presentations
-3. **Dockerized microservices** - All components run in containers
+3. **Dockerized microservices** - All components run in containers **from the start**
 4. **Basic error handling** - Graceful failure modes and user feedback
 
 ### Secondary Goals (if time permits)
@@ -22,82 +35,104 @@
 
 ---
 
-## Phase Overview
+## Implementation Phases
 
-### Phase 1: Frontend Development
-**Estimate:** 2-3 days
+### Phase 0: Project Setup
+**Estimate:** 1 hour
 
-Build a simple, clean web interface for user input and file download.
+Create the complete project structure upfront.
+
+```bash
+# Create all directories
+mkdir -p frontend/static
+mkdir -p orchestrator/api
+mkdir -p pptx-generator/templates
+```
 
 **Files to Create:**
 ```
-frontend/
-├── Dockerfile
-├── nginx.conf
-└── static/
-    ├── index.html
-    ├── style.css
-    └── app.js
+pptx_poc/
+├── docker-compose.yml          # Create first, add services incrementally
+├── frontend/
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── static/
+│       ├── index.html
+│       ├── style.css
+│       └── app.js
+├── orchestrator/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── main.py
+│   ├── config.py
+│   └── api/
+│       ├── routes.py
+│       ├── models.py
+│       └── ollama_client.py
+└── pptx-generator/
+    ├── Dockerfile
+    ├── requirements.txt
+    ├── generator.py
+    ├── config.py
+    └── templates/
+        └── basic_template.py
 ```
 
-### Phase 2: Backend API (Orchestrator)
+### Phase 1: Backend API + Container
 **Estimate:** 3-4 days
 
-FastAPI service that handles requests, communicates with Ollama, and coordinates PPTX generation.
+Build the orchestrator service with immediate containerization.
 
-**Files to Create:**
-```
-orchestrator/
-├── Dockerfile
-├── requirements.txt
-├── main.py
-├── config.py
-└── api/
-    ├── routes.py
-    ├── models.py
-    └── ollama_client.py
-```
+**Create Together:**
+- `orchestrator/main.py` - FastAPI application
+- `orchestrator/Dockerfile` - Container definition
+- `docker-compose.yml` - Add orchestrator service
 
-### Phase 3: PPTX Generator
+**Test:** `docker-compose up orchestrator` then curl the endpoints
+
+### Phase 2: PPTX Generator + Container
 **Estimate:** 2-3 days
 
-Python service using python-pptx to create 3-slide presentations from structured data.
+Build the PPTX generator service with immediate containerization.
 
-**Files to Create:**
-```
-pptx-generator/
-├── Dockerfile
-├── requirements.txt
-├── generator.py
-├── config.py
-└── templates/
-    └── basic_template.py
-```
+**Create Together:**
+- `pptx-generator/generator.py` - Python-pptx service
+- `pptx-generator/Dockerfile` - Container definition
+- Update `docker-compose.yml` - Add pptx-generator service
 
-### Phase 4: Docker Implementation
+**Test:** `docker-compose up pptx-generator` then test generation
+
+### Phase 3: Frontend + Container
+**Estimate:** 2-3 days
+
+Build the frontend with immediate containerization.
+
+**Create Together:**
+- `frontend/static/index.html`, `style.css`, `app.js`
+- `frontend/Dockerfile` - nginx:alpine container
+- `frontend/nginx.conf` - Proxy configuration
+- Update `docker-compose.yml` - Add frontend service
+
+**Test:** `docker-compose up frontend` then test in browser
+
+### Phase 4: Integration & Testing
 **Estimate:** 1-2 days
 
-Containerize all components and configure docker-compose for orchestration.
+All services running together in containers.
 
-**Files to Create:**
-```
-docker-compose.yml
-frontend/Dockerfile
-orchestrator/Dockerfile
-pptx-generator/Dockerfile
-```
+**Test:** `docker-compose up` - full stack testing
 
 ---
 
-## Development Order
+## Development Order (Docker-First)
 
-Recommended sequence for implementation:
-
-1. Start with **backend API** (can test with curl)
-2. Implement **PPTX generator** (can test independently)
-3. Build **frontend interface**
-4. **Dockerize** each component
-5. **Integrate and test** end-to-end
+| Step | Component | What to Create | How to Test |
+|------|-----------|----------------|-------------|
+| 1 | Setup | Project folders + docker-compose.yml skeleton | N/A |
+| 2 | Backend | Code + Dockerfile together | `docker-compose up orchestrator` + curl |
+| 3 | PPTX | Code + Dockerfile together | `docker-compose up pptx-generator` |
+| 4 | Frontend | Code + Dockerfile together | `docker-compose up frontend` |
+| 5 | Integration | Connect all services | `docker-compose up` |
 
 ---
 
