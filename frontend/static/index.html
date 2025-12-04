@@ -20,14 +20,16 @@
         <form id="generationForm">
             <div class="form-group">
                 <label for="topic">Presentation Topic</label>
-                <input
-                    type="text"
+                <textarea
                     id="topic"
                     name="topic"
-                    placeholder="Enter your presentation topic (e.g., 'AI in Healthcare')"
+                    rows="4"
+                    placeholder="Describe your presentation topic in detail. For example:
+
+'Create a presentation about AI in Healthcare, covering current applications, benefits for patients and doctors, challenges, and future outlook.'"
                     maxlength="500"
                     required
-                >
+                ></textarea>
             </div>
 
             <div class="text-center">
