@@ -1,0 +1,20 @@
+# =============================================================================
+# PPTX POC - PPTX Generator Service Dependencies
+# =============================================================================
+# FastAPI service with python-pptx for PowerPoint generation
+# =============================================================================
+
+# Web framework
+fastapi>=0.109.0,<1.0.0
+
+# ASGI server
+uvicorn[standard]>=0.27.0,<1.0.0
+
+# PowerPoint generation
+python-pptx>=1.0.0,<2.0.0
+
+# Data validation (included with FastAPI, but pinned for clarity)
+pydantic>=2.5.0,<3.0.0
+
+# File handling utilities
+aiofiles>=23.2.0,<24.0.0

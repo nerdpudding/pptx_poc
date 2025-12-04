@@ -15,28 +15,60 @@
 ## Current Sprint Status
 
 **Sprint Start:** 2025-12-04
-**Overall Progress:** 6%
+**Overall Progress:** 22%
 
 ### Phase Progress
 | Phase | Status | Progress |
 |-------|--------|----------|
 | Project Setup | Completed | 100% |
-| Backend + Container | Not Started | 0% |
-| PPTX Generator + Container | Not Started | 0% |
-| Frontend + Container | Not Started | 0% |
+| Backend + Container | In Progress | 14% |
+| PPTX Generator + Container | In Progress | 18% |
+| Frontend + Container | In Progress | 14% |
 | Integration & Testing | Not Started | 0% |
 
 ### Progress Visualization
 
 ```mermaid
 pie title Sprint 1 Progress
-    "Completed" : 5
-    "Remaining" : 73
+    "Completed" : 18
+    "Remaining" : 64
 ```
 
 ---
 
 ## Daily Log Entries
+
+### 2025-12-04 - Day 1
+
+**Status:** Green
+**Focus:** Docker infrastructure setup and Dockerfile creation
+
+#### Tasks Completed
+- [x] Restructured `docker-compose.yml` with external Ollama network
+- [x] Created `docker-compose.ollama.yml` for standalone Ollama
+- [x] Created `.env` / `.env.example` with configurable ports (5xxx range)
+- [x] Created `QUICK_INSTALL.md` setup guide
+- [x] Created `frontend/Dockerfile` (nginx:alpine)
+- [x] Created `frontend/nginx.conf` (API proxy, static files, security headers)
+- [x] Created `orchestrator/Dockerfile` (Python 3.11 slim + FastAPI)
+- [x] Created `orchestrator/requirements.txt`
+- [x] Created `pptx-generator/Dockerfile` (Python 3.11 slim + python-pptx)
+- [x] Created `pptx-generator/requirements.txt`
+- [x] Fixed health check in frontend (curl → wget for alpine)
+- [x] Updated all documentation to reflect new structure
+
+#### Container Testing
+- [ ] `docker-compose build` - Pending (Dockerfiles ready, missing app code)
+
+#### Blockers
+- None - infrastructure is ready, waiting for application code
+
+#### Learnings
+- nginx:alpine doesn't have `curl`, use `wget` for health checks
+- External Docker network allows sharing Ollama across projects
+- 5xxx port range avoids conflicts with common services
+
+---
 
 ### [YYYY-MM-DD] - Day X
 
@@ -110,8 +142,8 @@ pie title Sprint 1 Progress
 ### Delivery Metrics
 | Metric | Target | Current |
 |--------|--------|---------|
-| Tasks completed | 78 | 5 |
-| Sprint completion | 100% | 6% |
+| Tasks completed | 82 | 18 |
+| Sprint completion | 100% | 22% |
 
 ---
 
@@ -170,12 +202,12 @@ curl -X POST http://localhost:5000/api/v1/generate \
 
 ## Quick Status
 
-**Traffic Light:** Green / Yellow / Red
+**Traffic Light:** Green
 
 ```
-Overall:   [=         ] 6%
+Overall:   [==        ] 22%
 Setup:     [==========] 100%
-Backend:   [          ] 0%
-PPTX:      [          ] 0%
-Frontend:  [          ] 0%
+Backend:   [=         ] 14%
+PPTX:      [==        ] 18%
+Frontend:  [=         ] 14%
 ```

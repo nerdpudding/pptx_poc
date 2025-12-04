@@ -17,11 +17,11 @@
 | Category | Total | Completed | Percentage |
 |----------|-------|-----------|------------|
 | Project Setup | 9 | 9 | 100% |
-| Backend + Container | 22 | 0 | 0% |
-| PPTX Generator + Container | 17 | 0 | 0% |
-| Frontend + Container | 22 | 0 | 0% |
+| Backend + Container | 22 | 3 | 14% |
+| PPTX Generator + Container | 17 | 3 | 18% |
+| Frontend + Container | 22 | 3 | 14% |
 | Integration & Testing | 12 | 0 | 0% |
-| **Total** | **82** | **9** | **11%** |
+| **Total** | **82** | **18** | **22%** |
 
 ---
 
@@ -46,9 +46,9 @@
 > **Create code and Dockerfile together - test in container immediately**
 
 ### Orchestrator Setup
-- [ ] Create `orchestrator/Dockerfile` for Python/FastAPI
-- [ ] Create `orchestrator/requirements.txt` (fastapi, uvicorn, httpx, pydantic)
-- [ ] Add orchestrator service to `docker-compose.yml`
+- [x] Create `orchestrator/Dockerfile` for Python/FastAPI
+- [x] Create `orchestrator/requirements.txt` (fastapi, uvicorn, httpx, pydantic)
+- [x] Add orchestrator service to `docker-compose.yml`
 - [ ] Test container builds: `docker-compose build orchestrator`
 
 ### FastAPI Application
@@ -85,9 +85,9 @@
 > **Create code and Dockerfile together - test in container immediately**
 
 ### Generator Setup
-- [ ] Create `pptx-generator/Dockerfile` for Python
-- [ ] Create `pptx-generator/requirements.txt` (fastapi, uvicorn, python-pptx)
-- [ ] Add pptx-generator service to `docker-compose.yml`
+- [x] Create `pptx-generator/Dockerfile` for Python
+- [x] Create `pptx-generator/requirements.txt` (fastapi, uvicorn, python-pptx)
+- [x] Add pptx-generator service to `docker-compose.yml`
 - [ ] Test container builds: `docker-compose build pptx-generator`
 
 ### Core Service
@@ -118,9 +118,9 @@
 > **Create code and Dockerfile together - test in container immediately**
 
 ### Frontend Setup
-- [ ] Create `frontend/Dockerfile` for nginx:alpine
-- [ ] Create `frontend/nginx.conf` with API proxy rules
-- [ ] Add frontend service to `docker-compose.yml`
+- [x] Create `frontend/Dockerfile` for nginx:alpine
+- [x] Create `frontend/nginx.conf` with API proxy rules
+- [x] Add frontend service to `docker-compose.yml`
 - [ ] Test container builds: `docker-compose build frontend`
 
 ### HTML Structure

@@ -7,9 +7,11 @@
   - [1. Clone the Repository](#1-clone-the-repository)
   - [2. Configure Environment](#2-configure-environment)
   - [3. Setup Ollama](#3-setup-ollama)
-  - [4. Start the Stack](#4-start-the-stack)
+  - [4. Build the Containers](#4-build-the-containers)
+  - [5. Start the Stack](#5-start-the-stack)
 - [Model Selection Guide](#model-selection-guide)
 - [Understanding the Ollama Network Strategy](#understanding-the-ollama-network-strategy)
+- [Project Structure](#project-structure)
 - [Quick Reference](#quick-reference)
 
 ---
@@ -98,7 +100,26 @@ docker network connect ollama-network <your-ollama-container-name>
 # Update OLLAMA_MODEL in .env to match your available model
 ```
 
-### 4. Start the Stack
+### 4. Build the Containers
+
+Build all service containers:
+
+```bash
+# Build all services
+docker-compose build
+
+# Or build individually
+docker-compose build orchestrator
+docker-compose build pptx-generator
+docker-compose build frontend
+```
+
+**Expected build output:**
+- `orchestrator` - Python 3.11 slim with FastAPI
+- `pptx-generator` - Python 3.11 slim with python-pptx
+- `frontend` - nginx:alpine with static files
+
+### 5. Start the Stack
 
 ```bash
 docker-compose up -d
@@ -108,6 +129,27 @@ Verify all services are running:
 
 ```bash
 docker-compose ps
+```
+
+**Expected output:**
+```
+NAME                    STATUS    PORTS
+pptx_poc-frontend-1     running   0.0.0.0:5102->80/tcp
+pptx_poc-orchestrator-1 running   0.0.0.0:5100->8000/tcp
+pptx_poc-pptx-generator-1 running 0.0.0.0:5101->8001/tcp
+```
+
+**Test the services:**
+
+```bash
+# Test orchestrator health
+curl http://localhost:5100/health
+
+# Test pptx-generator health
+curl http://localhost:5101/health
+
+# Test frontend
+curl http://localhost:5102/health
 ```
 
 ---
@@ -194,13 +236,57 @@ Services in the main stack connect to Ollama via Docker's internal DNS - they ca
 
 | Task | Command |
 |------|---------|
+| Build all containers | `docker-compose build` |
+| Build single service | `docker-compose build <service>` |
 | Start stack | `docker-compose up -d` |
 | Stop stack | `docker-compose down` |
 | View logs | `docker-compose logs -f` |
+| View specific logs | `docker-compose logs -f orchestrator` |
 | Start Ollama (fresh) | `docker-compose -f docker-compose.ollama.yml up -d` |
 | Pull model | `docker exec ollama ollama pull <model-name>` |
 | Check status | `docker-compose ps` |
 | List models | `docker exec ollama ollama list` |
+| Rebuild after changes | `docker-compose build --no-cache` |
+| Clean up (with volumes) | `docker-compose down -v` |
+
+---
+
+## Project Structure
+
+```
+pptx_poc/
+├── docker-compose.yml          # Main stack (ports 5100-5102, external Ollama)
+├── docker-compose.ollama.yml   # Optional: standalone Ollama for fresh installs
+├── .env.example                # Environment template (copy to .env)
+├── .env                        # Your local config (git-ignored)
+├── QUICK_INSTALL.md            # This file
+│
+├── frontend/                   # Nginx static file server
+│   ├── Dockerfile              # nginx:alpine image
+│   ├── nginx.conf              # API proxy + static serving
+│   └── static/                 # HTML/CSS/JS files
+│       ├── index.html
+│       ├── style.css
+│       └── app.js
+│
+├── orchestrator/               # FastAPI backend
+│   ├── Dockerfile              # Python 3.11 slim
+│   ├── requirements.txt        # fastapi, httpx, pydantic
+│   ├── main.py                 # FastAPI application
+│   ├── config.py               # Environment config
+│   └── api/
+│       ├── routes.py           # API endpoints
+│       ├── models.py           # Pydantic models
+│       └── ollama_client.py    # Ollama HTTP client
+│
+└── pptx-generator/             # PowerPoint generation service
+    ├── Dockerfile              # Python 3.11 slim
+    ├── requirements.txt        # fastapi, python-pptx
+    ├── generator.py            # FastAPI application
+    ├── config.py               # Configuration
+    └── templates/
+        └── basic_template.py   # Slide templates
+```
 
 ---
 
