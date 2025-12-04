@@ -1,0 +1,63 @@
+# Basic .gitignore for PowerPoint Generation POC
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE/Editor Files
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Build and Dependency Files
+node_modules/
+dist/
+build/
+*.log
+*.pid
+
+# Environment Files
+.env
+.env.local
+.env.*.local
+*.env
+
+# Docker Files
+# Note: docker-compose.override.yml ignored for local dev overrides
+docker-compose.override.yml
+
+# Python Files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# JavaScript/TypeScript Files
+*.js.map
+*.tsbuildinfo
+# Note: *.d.ts NOT ignored - needed if using TypeScript
+
+# Generated Files
+*.pptx
+*.tmp
+*.bak
+*.backup
+
+# Local Development
+coverage/
+*.sqlite
+*.db
+
+# VSCode Specific
+.vscode-test/
+.vscode-insiders/
+
+# Mermaid Cache
+.mermaid-cache/
+
+# Documentation Build
+docs/_build/
