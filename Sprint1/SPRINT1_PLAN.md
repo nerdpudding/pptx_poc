@@ -149,7 +149,7 @@ Build the frontend with immediate containerization.
 - Test nginx serves static files correctly
 - Test API proxy works correctly
 
-**Test:** `docker compose up frontend` then test in browser
+**Test:** `docker compose up frontend` then test in browser 
 
 ### Phase 4: Integration & Testing
 **Estimate:** 1-2 days

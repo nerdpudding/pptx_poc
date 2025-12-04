@@ -4,14 +4,17 @@ PPTX POC - PPTX Generator Service
 FastAPI service for PowerPoint file generation using python-pptx
 """
 
+import os
 import uuid
 import logging
 from enum import Enum
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel, Field
+
+from slide_builder import SlideBuilder
 
 # Configure logging
 logging.basicConfig(
@@ -26,6 +29,8 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 APP_VERSION = "0.1.0"
+OUTPUT_DIR = "/app/output"
+TEMPLATE_PATH = "/app/templates/default.pptx"
 
 
 # =============================================================================
@@ -140,37 +145,52 @@ async def generate_pptx(request: GenerateRequest) -> GenerateResponse:
     """
     Generate a PowerPoint file from structured content.
 
-    This is currently a placeholder that returns mock data.
-    Full implementation will use python-pptx to create actual files.
+    Creates a real PPTX file using python-pptx with professional styling.
+    Supports any number of slides with title, content, and summary types.
     """
     logger.info(f"Generate request: title='{request.content.title}', slides={len(request.content.slides)}")
 
     try:
         # Generate unique file ID
         file_id = str(uuid.uuid4())
+        file_path = os.path.join(OUTPUT_DIR, f"{file_id}.pptx")
 
-        # TODO: Implement actual PPTX generation with python-pptx
-        # from pptx import Presentation
-        # prs = Presentation()
-        # ... create slides ...
-        # prs.save(f"/app/output/{file_id}.pptx")
+        # Ensure output directory exists
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+        # Create presentation using SlideBuilder
+        builder = SlideBuilder(template_path=TEMPLATE_PATH)
+
+        # Process each slide from the request
+        for slide in request.content.slides:
+            builder.add_slide_by_type(
+                slide_type=slide.type.value,
+                heading=slide.heading,
+                subheading=slide.subheading,
+                bullets=slide.bullets
+            )
+
+        # Save the presentation
+        builder.save(file_path)
+
+        logger.info(f"PPTX generated successfully: {file_id} ({builder.slide_count} slides)")
 
         return GenerateResponse(
             success=True,
             file_id=file_id,
             filename=request.filename,
-            message="PPTX generation request accepted (placeholder)"
+            message=f"PPTX generated with {builder.slide_count} slides"
         )
 
     except Exception as e:
-        logger.error(f"Error generating PPTX: {e}")
+        logger.error(f"Error generating PPTX: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail={
                 "success": False,
                 "error": {
                     "code": "GENERATION_ERROR",
-                    "message": "Failed to generate PPTX file"
+                    "message": f"Failed to generate PPTX file: {str(e)}"
                 }
             }
         )
@@ -179,32 +199,62 @@ async def generate_pptx(request: GenerateRequest) -> GenerateResponse:
 @app.get(
     "/download/{file_id}",
     tags=["download"],
-    summary="Download PPTX file"
+    summary="Download PPTX file",
+    responses={
+        200: {"description": "PPTX file download"},
+        404: {"model": ErrorResponse},
+    }
 )
-async def download_pptx(file_id: str):
+async def download_pptx(file_id: str, filename: Optional[str] = "presentation.pptx"):
     """
     Download a generated PPTX file by ID.
 
-    This is currently a placeholder.
-    Full implementation will serve actual files.
+    Args:
+        file_id: Unique identifier for the generated file
+        filename: Optional filename for the download (default: presentation.pptx)
+
+    Returns:
+        FileResponse with the PPTX file
     """
     logger.info(f"Download request for file_id: {file_id}")
 
-    # TODO: Implement actual file serving
-    # from fastapi.responses import FileResponse
-    # file_path = f"/app/output/{file_id}.pptx"
-    # return FileResponse(file_path, filename="presentation.pptx")
+    # Validate file_id format (UUID)
+    try:
+        uuid.UUID(file_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "success": False,
+                "error": {
+                    "code": "INVALID_FILE_ID",
+                    "message": "Invalid file ID format"
+                }
+            }
+        )
 
-    return JSONResponse(
-        status_code=501,
-        content={
-            "success": False,
-            "error": {
-                "code": "NOT_IMPLEMENTED",
-                "message": "Download functionality not yet implemented"
-            },
-            "file_id": file_id
-        }
+    file_path = os.path.join(OUTPUT_DIR, f"{file_id}.pptx")
+
+    if not os.path.exists(file_path):
+        logger.warning(f"File not found: {file_path}")
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "success": False,
+                "error": {
+                    "code": "FILE_NOT_FOUND",
+                    "message": "The requested file does not exist or has expired"
+                },
+                "file_id": file_id
+            }
+        )
+
+    logger.info(f"Serving file: {file_path}")
+
+    return FileResponse(
+        path=file_path,
+        filename=filename,
+        media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation"
     )
 
 

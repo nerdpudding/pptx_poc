@@ -22,6 +22,7 @@ from .models import (
     SlideType,
 )
 from .ollama_client import get_ollama_client
+from .pptx_client import get_pptx_client
 from config import Settings, get_settings
 from prompt_loader import get_prompt_loader
 from session_manager import get_session_manager
@@ -390,10 +391,8 @@ async def generate_from_draft(
     """
     Generate final presentation from draft.
 
-    Uses the same generation flow as quick mode.
+    Creates actual PPTX file via pptx-generator service.
     """
-    import uuid
-
     session_manager = get_session_manager()
 
     # Get session
@@ -422,9 +421,6 @@ async def generate_from_draft(
             }
         )
 
-    # Generate file ID
-    file_id = str(uuid.uuid4())
-
     # Convert draft to preview format
     preview = PresentationPreview(
         title=session.draft.title,
@@ -439,7 +435,27 @@ async def generate_from_draft(
         ]
     )
 
-    logger.info(f"Generated presentation from draft for session {session_id}")
+    # Generate actual PPTX file via pptx-generator service
+    pptx_client = get_pptx_client()
+    async with pptx_client:
+        pptx_response = await pptx_client.generate(
+            title=session.draft.title,
+            slides=[
+                {
+                    "type": slide["type"],
+                    "heading": slide["heading"],
+                    "subheading": slide.get("subheading"),
+                    "bullets": slide.get("bullets")
+                }
+                for slide in session.draft.slides
+            ],
+            filename=f"{session.draft.title[:50].replace(' ', '_')}.pptx"
+        )
+
+    # Use file_id from PPTX generator
+    file_id = pptx_response.file_id
+
+    logger.info(f"Generated PPTX from draft for session {session_id}, file_id={file_id}")
 
     return GenerateResponse(
         success=True,

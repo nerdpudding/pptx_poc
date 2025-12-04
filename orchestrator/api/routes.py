@@ -3,9 +3,9 @@ PPTX POC - Orchestrator API Routes
 API endpoint handlers with proper validation and error handling
 """
 
-import uuid
 import json
 import logging
+import httpx
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse, StreamingResponse
 
@@ -21,6 +21,7 @@ from .models import (
     StreamRequest,
 )
 from .ollama_client import OllamaClient, get_ollama_client
+from .pptx_client import get_pptx_client
 from config import Settings, get_settings
 from prompt_loader import get_prompt_loader
 
@@ -219,7 +220,27 @@ async def generate_presentation(
             ]
         )
 
-        logger.info(f"Successfully generated presentation with {len(preview.slides)} slides")
+        # Generate actual PPTX file via pptx-generator service
+        pptx_client = get_pptx_client()
+        async with pptx_client:
+            pptx_response = await pptx_client.generate(
+                title=presentation_content.title,
+                slides=[
+                    {
+                        "type": slide.type.value,
+                        "heading": slide.heading,
+                        "subheading": slide.subheading,
+                        "bullets": slide.bullets
+                    }
+                    for slide in presentation_content.slides
+                ],
+                filename=f"{request.topic[:50].replace(' ', '_')}.pptx"
+            )
+
+        # Use file_id from PPTX generator
+        file_id = pptx_response.file_id
+
+        logger.info(f"Successfully generated presentation with {len(preview.slides)} slides, file_id={file_id}")
 
         return GenerateResponse(
             success=True,
@@ -252,29 +273,74 @@ async def generate_presentation(
     summary="Download presentation",
     description="Download a generated PowerPoint file"
 )
-async def download_presentation(file_id: str):
+async def download_presentation(
+    file_id: str,
+    settings: Settings = Depends(get_settings)
+):
     """
     Download a generated presentation by file ID.
 
-    This is currently a placeholder.
-    Full implementation will:
-    1. Look up file in storage
-    2. Return file as streaming response
+    Proxies the request to the PPTX generator service.
     """
     logger.info(f"Download request for file_id: {file_id}")
 
-    # Placeholder - return not implemented status
-    return JSONResponse(
-        status_code=501,
-        content={
-            "success": False,
-            "error": {
-                "code": "NOT_IMPLEMENTED",
-                "message": "Download functionality not yet implemented"
-            },
-            "fileId": file_id
-        }
-    )
+    try:
+        # Proxy request to pptx-generator service
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(
+                f"{settings.pptx_generator_url}/download/{file_id}"
+            )
+
+            if response.status_code == 404:
+                raise HTTPException(
+                    status_code=404,
+                    detail={
+                        "success": False,
+                        "error": {
+                            "code": "FILE_NOT_FOUND",
+                            "message": "The requested file does not exist or has expired"
+                        },
+                        "fileId": file_id
+                    }
+                )
+
+            response.raise_for_status()
+
+            # Stream the file back to client
+            return StreamingResponse(
+                content=iter([response.content]),
+                media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                headers={
+                    "Content-Disposition": f'attachment; filename="presentation.pptx"'
+                }
+            )
+
+    except httpx.HTTPStatusError as e:
+        logger.error(f"Error downloading from pptx-generator: {e}")
+        raise HTTPException(
+            status_code=e.response.status_code,
+            detail={
+                "success": False,
+                "error": {
+                    "code": "DOWNLOAD_ERROR",
+                    "message": "Failed to download presentation file"
+                },
+                "fileId": file_id
+            }
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error downloading presentation: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "success": False,
+                "error": {
+                    "code": "DOWNLOAD_ERROR",
+                    "message": "Failed to download presentation file"
+                },
+                "fileId": file_id
+            }
+        )
 
 
 # =============================================================================
