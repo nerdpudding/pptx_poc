@@ -7,31 +7,31 @@
 
 > **All services run in Docker containers.**
 > - Write code + Dockerfile together
-> - Test with `docker-compose up <service>`
-> - Full stack: `docker-compose up`
+> - Test with `docker compose up <service>`
+> - Full stack: `docker compose up`
 
 ---
 
 ## Current Sprint Status
 
 **Sprint Start:** 2025-12-04
-**Overall Progress:** 52%
+**Overall Progress:** 62%
 
 ### Phase Progress
 | Phase | Status | Progress |
 |-------|--------|----------|
 | Project Setup | Completed | 100% |
-| Backend + Container | In Progress | 55% |
-| PPTX Generator + Container | In Progress | 47% |
-| Frontend + Container | In Progress | 64% |
+| Backend + Container | In Progress | 73% |
+| PPTX Generator + Container | In Progress | 59% |
+| Frontend + Container | In Progress | 73% |
 | Integration & Testing | Not Started | 0% |
 
 ### Progress Visualization
 
 ```mermaid
 pie title Sprint 1 Progress
-    "Completed" : 43
-    "Remaining" : 39
+    "Completed" : 51
+    "Remaining" : 31
 ```
 
 ---
@@ -58,7 +58,7 @@ pie title Sprint 1 Progress
 - [x] Updated all documentation to reflect new structure
 
 #### Container Testing
-- [ ] `docker-compose build` - Pending (all application code now ready)
+- [x] `docker compose build` - All containers built successfully
 
 #### Blockers
 - None - infrastructure is ready, waiting for application code
@@ -137,15 +137,18 @@ pie title Sprint 1 Progress
 - Separated CSS/JS from HTML for maintainability
 
 #### Container Testing
-- [ ] `docker-compose build` - Pending (ready for user to test)
+- [x] `docker compose build` - All 3 containers built successfully
+- [x] `docker compose up -d` - All services running and healthy
+- [x] Health endpoints tested (orchestrator, pptx-generator, frontend all OK)
+- [x] Generate endpoint tested with curl (placeholder response OK)
 
 #### Blockers
 - None
 
 #### Next Steps
-- User to run `docker-compose build` and verify all containers build
-- Test health endpoints after containers are running
-- Debug any build or runtime issues together
+- Test frontend in browser (http://localhost:5102)
+- Implement actual Ollama client
+- Implement actual PPTX file generation
 
 ---
 
@@ -221,8 +224,8 @@ pie title Sprint 1 Progress
 ### Delivery Metrics
 | Metric | Target | Current |
 |--------|--------|---------|
-| Tasks completed | 82 | 43 |
-| Sprint completion | 100% | 52% |
+| Tasks completed | 82 | 51 |
+| Sprint completion | 100% | 62% |
 
 ---
 
@@ -284,9 +287,9 @@ curl -X POST http://localhost:5000/api/v1/generate \
 **Traffic Light:** Green
 
 ```
-Overall:   [=====     ] 52%
+Overall:   [======    ] 62%
 Setup:     [==========] 100%
-Backend:   [=====     ] 55%
-PPTX:      [=====     ] 47%
-Frontend:  [======    ] 64%
+Backend:   [=======   ] 73%
+PPTX:      [======    ] 59%
+Frontend:  [=======   ] 73%
 ```

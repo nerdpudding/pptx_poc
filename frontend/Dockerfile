@@ -16,8 +16,8 @@ COPY static/ /usr/share/nginx/html/
 EXPOSE 80
 
 # Health check (using wget since curl is not available in alpine)
-HEALTHCHECK --interval=30s --timeout=3s \
-    CMD wget --quiet --tries=1 --spider http://localhost || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget --quiet --tries=1 -O /dev/null http://127.0.0.1:80/health || exit 1
 
 # Command to run nginx in foreground
 CMD ["nginx", "-g", "daemon off;"]

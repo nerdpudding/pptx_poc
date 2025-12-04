@@ -2,7 +2,7 @@
 
 ## 📋 Project Overview
 
-**Status:** 🚀 Sprint 1 Implementation In Progress (52%)
+**Status:** 🚀 Sprint 1 Implementation In Progress (62%)
 **Objective:** Create a minimal viable POC demonstrating that local AI models running in Ollama can generate professional PowerPoint presentations through a simple web interface using natural language input.
 
 ## 🎯 Project Goals
@@ -52,11 +52,11 @@ cd pptx_poc
 cp .env.example .env
 
 # 2. Setup Ollama (skip if you already have one running)
-docker-compose -f docker-compose.ollama.yml up -d
+docker compose -f docker-compose.ollama.yml up -d
 docker exec ollama ollama pull ministral-3:14b-instruct-2512-q8_0
 
 # 3. Start the stack
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Project Structure
@@ -168,7 +168,7 @@ See [QUICK_INSTALL.md](QUICK_INSTALL.md) for detailed setup instructions, includ
 For questions about this POC:
 - **Project Lead:** [Your Name]
 - **Status:** Active development
-- **Current Phase:** Sprint 1 Implementation (52% complete)
+- **Current Phase:** Sprint 1 Implementation (62% complete)
 
 ---
 

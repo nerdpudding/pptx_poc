@@ -60,7 +60,7 @@ Edit `.env` to:
 ```bash
 # Start Ollama container (creates ollama-network automatically)
 # Includes GPU support and optimized KV cache settings
-docker-compose -f docker-compose.ollama.yml up -d
+docker compose -f docker-compose.ollama.yml up -d
 
 # Pull a model (see Model Selection Guide below)
 docker exec ollama ollama pull ministral-3:14b-instruct-2512-q8_0
@@ -106,12 +106,12 @@ Build all service containers:
 
 ```bash
 # Build all services
-docker-compose build
+docker compose build
 
 # Or build individually
-docker-compose build orchestrator
-docker-compose build pptx-generator
-docker-compose build frontend
+docker compose build orchestrator
+docker compose build pptx-generator
+docker compose build frontend
 ```
 
 **Expected build output:**
@@ -122,13 +122,13 @@ docker-compose build frontend
 ### 5. Start the Stack
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 Verify all services are running:
 
 ```bash
-docker-compose ps
+docker compose ps
 ```
 
 **Expected output:**
@@ -236,18 +236,18 @@ Services in the main stack connect to Ollama via Docker's internal DNS - they ca
 
 | Task | Command |
 |------|---------|
-| Build all containers | `docker-compose build` |
-| Build single service | `docker-compose build <service>` |
-| Start stack | `docker-compose up -d` |
-| Stop stack | `docker-compose down` |
-| View logs | `docker-compose logs -f` |
-| View specific logs | `docker-compose logs -f orchestrator` |
-| Start Ollama (fresh) | `docker-compose -f docker-compose.ollama.yml up -d` |
+| Build all containers | `docker compose build` |
+| Build single service | `docker compose build <service>` |
+| Start stack | `docker compose up -d` |
+| Stop stack | `docker compose down` |
+| View logs | `docker compose logs -f` |
+| View specific logs | `docker compose logs -f orchestrator` |
+| Start Ollama (fresh) | `docker compose -f docker-compose.ollama.yml up -d` |
 | Pull model | `docker exec ollama ollama pull <model-name>` |
-| Check status | `docker-compose ps` |
+| Check status | `docker compose ps` |
 | List models | `docker exec ollama ollama list` |
-| Rebuild after changes | `docker-compose build --no-cache` |
-| Clean up (with volumes) | `docker-compose down -v` |
+| Rebuild after changes | `docker compose build --no-cache` |
+| Clean up (with volumes) | `docker compose down -v` |
 
 ---
 

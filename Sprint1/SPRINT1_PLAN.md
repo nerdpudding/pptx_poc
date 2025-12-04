@@ -4,7 +4,7 @@
 
 **Duration:** 2-3 weeks (flexible)
 **Objective:** Implement the core PowerPoint generation functionality based on Sprint 0 research and planning
-**Status:** Planning Complete | Implementation In Progress (52%)
+**Status:** Planning Complete | Implementation In Progress (62%)
 
 ## Development Philosophy: Container-First
 
@@ -15,7 +15,7 @@ For each component:
 1. Write the code
 2. Create the Dockerfile immediately
 3. Add to docker-compose.yml
-4. Build and test via `docker-compose up`
+4. Build and test via `docker compose up`
 
 ---
 
@@ -53,7 +53,7 @@ cp .env.example .env
 
 # Setup Ollama (choose one):
 # Option A - Fresh install:
-docker-compose -f docker-compose.ollama.yml up -d
+docker compose -f docker-compose.ollama.yml up -d
 # Option B - Existing Ollama:
 docker network connect ollama-network <your-ollama-container>
 ```
@@ -91,7 +91,7 @@ pptx_poc/
         └── basic_template.py
 ```
 
-### Phase 1: Backend API + Container (In Progress - 55%)
+### Phase 1: Backend API + Container (In Progress - 73%)
 **Estimate:** 3-4 days
 
 Build the orchestrator service with immediate containerization.
@@ -110,9 +110,9 @@ Build the orchestrator service with immediate containerization.
 - `orchestrator/api/ollama_client.py` - Async HTTP client for Ollama
 - Container build verification
 
-**Test:** `docker-compose up orchestrator` then curl the endpoints
+**Test:** `docker compose up orchestrator` then curl the endpoints
 
-### Phase 2: PPTX Generator + Container (In Progress - 47%)
+### Phase 2: PPTX Generator + Container (In Progress - 59%)
 **Estimate:** 2-3 days
 
 Build the PPTX generator service with immediate containerization.
@@ -129,9 +129,9 @@ Build the PPTX generator service with immediate containerization.
 - Actual PPTX file generation with python-pptx
 - Container build verification
 
-**Test:** `docker-compose up pptx-generator` then test generation
+**Test:** `docker compose up pptx-generator` then test generation
 
-### Phase 3: Frontend + Container (In Progress - 64%)
+### Phase 3: Frontend + Container (In Progress - 73%)
 **Estimate:** 2-3 days
 
 Build the frontend with immediate containerization.
@@ -149,14 +149,14 @@ Build the frontend with immediate containerization.
 - Test nginx serves static files correctly
 - Test API proxy works correctly
 
-**Test:** `docker-compose up frontend` then test in browser
+**Test:** `docker compose up frontend` then test in browser
 
 ### Phase 4: Integration & Testing
 **Estimate:** 1-2 days
 
 All services running together in containers.
 
-**Test:** `docker-compose up` - full stack testing
+**Test:** `docker compose up` - full stack testing
 
 ---
 
@@ -165,10 +165,10 @@ All services running together in containers.
 | Step | Component | What to Create | How to Test |
 |------|-----------|----------------|-------------|
 | 1 | Setup | Project folders + docker-compose.yml skeleton | N/A |
-| 2 | Backend | Code + Dockerfile together | `docker-compose up orchestrator` + curl |
-| 3 | PPTX | Code + Dockerfile together | `docker-compose up pptx-generator` |
-| 4 | Frontend | Code + Dockerfile together | `docker-compose up frontend` |
-| 5 | Integration | Connect all services | `docker-compose up` |
+| 2 | Backend | Code + Dockerfile together | `docker compose up orchestrator` + curl |
+| 3 | PPTX | Code + Dockerfile together | `docker compose up pptx-generator` |
+| 4 | Frontend | Code + Dockerfile together | `docker compose up frontend` |
+| 5 | Integration | Connect all services | `docker compose up` |
 
 ---
 

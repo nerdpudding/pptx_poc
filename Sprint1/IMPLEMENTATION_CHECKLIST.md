@@ -8,7 +8,7 @@
 > **All services run in Docker containers.** For each component:
 > 1. Write code + Dockerfile together
 > 2. Add to docker-compose.yml
-> 3. Test via `docker-compose up`
+> 3. Test via `docker compose up`
 
 ---
 
@@ -17,11 +17,11 @@
 | Category | Total | Completed | Percentage |
 |----------|-------|-----------|------------|
 | Project Setup | 9 | 9 | 100% |
-| Backend + Container | 22 | 12 | 55% |
-| PPTX Generator + Container | 17 | 8 | 47% |
-| Frontend + Container | 22 | 14 | 64% |
+| Backend + Container | 22 | 16 | 73% |
+| PPTX Generator + Container | 17 | 10 | 59% |
+| Frontend + Container | 22 | 16 | 73% |
 | Integration & Testing | 12 | 0 | 0% |
-| **Total** | **82** | **43** | **52%** |
+| **Total** | **82** | **51** | **62%** |
 
 ---
 
@@ -49,7 +49,7 @@
 - [x] Create `orchestrator/Dockerfile` for Python/FastAPI
 - [x] Create `orchestrator/requirements.txt` (fastapi, uvicorn, httpx, pydantic)
 - [x] Add orchestrator service to `docker-compose.yml`
-- [ ] Test container builds: `docker-compose build orchestrator`
+- [x] Test container builds: `docker compose build orchestrator`
 
 ### FastAPI Application
 - [x] Create `orchestrator/main.py` with FastAPI app
@@ -73,9 +73,9 @@
 - [ ] Add retry logic for transient failures
 
 ### Container Testing
-- [ ] Test `docker-compose up orchestrator`
-- [ ] Test health endpoint with curl
-- [ ] Test generate endpoint with curl
+- [x] Test `docker compose up orchestrator`
+- [x] Test health endpoint with curl
+- [x] Test generate endpoint with curl (placeholder response OK)
 - [ ] Verify Ollama communication works in container
 
 ---
@@ -88,7 +88,7 @@
 - [x] Create `pptx-generator/Dockerfile` for Python
 - [x] Create `pptx-generator/requirements.txt` (fastapi, uvicorn, python-pptx)
 - [x] Add pptx-generator service to `docker-compose.yml`
-- [ ] Test container builds: `docker-compose build pptx-generator`
+- [x] Test container builds: `docker compose build pptx-generator`
 
 ### Core Service
 - [x] Create `pptx-generator/generator.py` with FastAPI app
@@ -106,8 +106,8 @@
 - [ ] Implement file storage and cleanup
 
 ### Container Testing
-- [ ] Test `docker-compose up pptx-generator`
-- [ ] Test health endpoint with curl
+- [x] Test `docker compose up pptx-generator`
+- [x] Test health endpoint with curl
 - [ ] Test generate endpoint with sample JSON
 - [ ] Verify PPTX file is created correctly
 
@@ -121,7 +121,7 @@
 - [x] Create `frontend/Dockerfile` for nginx:alpine
 - [x] Create `frontend/nginx.conf` with API proxy rules
 - [x] Add frontend service to `docker-compose.yml`
-- [ ] Test container builds: `docker-compose build frontend`
+- [x] Test container builds: `docker compose build frontend`
 
 ### HTML Structure
 - [x] Create `frontend/static/index.html`
@@ -151,8 +151,8 @@
 - [x] Add loading state management
 
 ### Container Testing
-- [ ] Test `docker-compose up frontend`
-- [ ] Verify nginx serves static files
+- [x] Test `docker compose up frontend`
+- [x] Verify nginx serves static files (health OK)
 - [ ] Verify API proxy works correctly
 
 ---
