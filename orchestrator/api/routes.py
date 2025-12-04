@@ -22,6 +22,7 @@ from .models import (
 )
 from .ollama_client import OllamaClient, get_ollama_client
 from config import Settings, get_settings
+from prompt_loader import get_prompt_loader
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -69,6 +70,83 @@ async def root(settings: Settings = Depends(get_settings)):
 
 
 # =============================================================================
+# Configuration Endpoints
+# =============================================================================
+
+@router.get(
+    "/api/v1/config",
+    tags=["config"],
+    summary="Get configuration",
+    description="Returns default settings and available templates for frontend initialization"
+)
+async def get_config():
+    """
+    Get configuration for frontend initialization.
+
+    Returns:
+        - defaults: Default settings (temperature, slides, language, template)
+        - templates: List of available templates with their system prompts
+    """
+    prompt_loader = get_prompt_loader()
+
+    return {
+        "defaults": prompt_loader.get_defaults(),
+        "templates": prompt_loader.get_template_list()
+    }
+
+
+@router.get(
+    "/api/v1/templates",
+    tags=["config"],
+    summary="Get available templates",
+    description="Returns list of available presentation templates"
+)
+async def get_templates():
+    """
+    Get list of available presentation templates.
+
+    Returns:
+        List of templates with key, name, description, and system_prompt
+    """
+    prompt_loader = get_prompt_loader()
+    return {"templates": prompt_loader.get_template_list()}
+
+
+@router.get(
+    "/api/v1/templates/{template_key}",
+    tags=["config"],
+    summary="Get specific template",
+    description="Returns details for a specific template"
+)
+async def get_template(template_key: str):
+    """
+    Get details for a specific template.
+
+    Args:
+        template_key: Template identifier (e.g., "general", "project_init")
+
+    Returns:
+        Template details including system_prompt
+    """
+    prompt_loader = get_prompt_loader()
+    template = prompt_loader.get_template(template_key)
+
+    if not template:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "success": False,
+                "error": {
+                    "code": "TEMPLATE_NOT_FOUND",
+                    "message": f"Template '{template_key}' not found"
+                }
+            }
+        )
+
+    return template.to_dict()
+
+
+# =============================================================================
 # Generation Endpoints
 # =============================================================================
 
@@ -94,15 +172,20 @@ async def generate_presentation(
     1. Calls Ollama to generate presentation content
     2. Returns file ID and download URL with preview
     """
-    # Use provided values or defaults
-    effective_slides = request.slides if request.slides is not None else settings.default_slides
-    effective_temp = request.temperature if request.temperature is not None else settings.ollama_temperature
+    # Get defaults from YAML config
+    prompt_loader = get_prompt_loader()
+    defaults = prompt_loader.get_defaults()
+
+    # Use provided values or defaults (YAML defaults > config.py defaults)
+    effective_slides = request.slides if request.slides is not None else defaults.get("slides", settings.default_slides)
+    effective_temp = request.temperature if request.temperature is not None else defaults.get("temperature", settings.ollama_temperature)
     effective_ctx = request.num_ctx if request.num_ctx is not None else settings.ollama_num_ctx
+    effective_template = request.template if request.template is not None else defaults.get("template", "general")
 
     logger.info(
         f"Generate request received: topic='{request.topic}', "
         f"language='{request.language}', slides={effective_slides}, "
-        f"temperature={effective_temp}, num_ctx={effective_ctx}"
+        f"temperature={effective_temp}, template='{effective_template}'"
     )
 
     try:
@@ -117,7 +200,9 @@ async def generate_presentation(
                 language=request.language or "en",
                 slides=effective_slides,
                 temperature=effective_temp,
-                num_ctx=effective_ctx
+                num_ctx=effective_ctx,
+                template=effective_template,
+                system_prompt=request.system  # User override for system prompt
             )
 
         # Convert Ollama response to preview format

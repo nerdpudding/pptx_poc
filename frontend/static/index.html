@@ -13,11 +13,20 @@
 
         <!-- Status Message -->
         <div id="status" class="status status-info">
-            Checking API status...
+            Loading configuration...
         </div>
 
         <!-- Generation Form -->
         <form id="generationForm">
+            <!-- Template Selection -->
+            <div class="form-group">
+                <label for="template">Presentation Type</label>
+                <select id="template">
+                    <option value="general">Loading templates...</option>
+                </select>
+                <small id="templateDescription" class="setting-hint"></small>
+            </div>
+
             <div class="form-group">
                 <label for="topic">Presentation Topic</label>
                 <textarea
@@ -36,6 +45,13 @@
             <details class="settings-panel">
                 <summary>Advanced Settings</summary>
                 <div class="settings-content">
+                    <div class="settings-header">
+                        <span>Customize generation parameters</span>
+                        <button type="button" id="resetBtn" class="button button-small button-secondary">
+                            Reset to Defaults
+                        </button>
+                    </div>
+
                     <div class="setting-item">
                         <label for="slides">Number of Slides</label>
                         <div class="setting-control">
@@ -43,6 +59,7 @@
                             <span id="slidesValue" class="setting-value">5</span>
                         </div>
                     </div>
+
                     <div class="setting-item">
                         <label for="temperature">Temperature (creativity)</label>
                         <div class="setting-control">
@@ -51,23 +68,15 @@
                         </div>
                         <small class="setting-hint">Lower = consistent, Higher = creative</small>
                     </div>
+
                     <div class="setting-item">
-                        <label for="numCtx">Context Size (TODO: fix)</label>
+                        <label for="systemPrompt">System Prompt</label>
                         <div class="setting-control">
-                            <select id="numCtx" disabled>
-                                <option value="65536">64K (Faster)</option>
-                                <option value="102400">100K</option>
-                                <option value="122880" selected>120K (Default)</option>
-                            </select>
+                            <textarea id="systemPrompt" rows="4" placeholder="Loading default system prompt..."></textarea>
                         </div>
-                        <small class="setting-hint" style="color: orange;">Uses modelfile default for now</small>
-                    </div>
-                    <div class="setting-item">
-                        <label for="systemPrompt">System Prompt (optional)</label>
-                        <div class="setting-control">
-                            <textarea id="systemPrompt" rows="3" placeholder="Custom instructions for the AI..."></textarea>
-                        </div>
-                        <small class="setting-hint">Override default system message</small>
+                        <small class="setting-hint">
+                            This is the template's default. Edit to customize or use Reset to restore.
+                        </small>
                     </div>
                 </div>
             </details>

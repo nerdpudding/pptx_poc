@@ -1,0 +1,290 @@
+# =============================================================================
+# PPTX POC - Prompt Templates Configuration
+# =============================================================================
+#
+# This file contains all prompt templates used by the orchestrator.
+# Developers can edit these prompts without touching the code.
+#
+# STRUCTURE:
+#   defaults:     - Default Ollama settings (shown in frontend on load)
+#   templates:    - Collection of presentation templates
+#     <key>:      - Template identifier (e.g., "general", "project_init")
+#       name:     - Display name for UI
+#       description: - Short description for UI
+#       system_prompt: - System message for Ollama
+#       presentation_prompt: - Main generation prompt
+#
+# VARIABLES in prompts (use {variable_name} syntax):
+#   - {topic}: The presentation topic from user input
+#   - {language}: Target language (en, nl, de, fr)
+#   - {slides}: Number of slides requested
+#   - {slides_minus_1}: slides - 1 (for range references)
+#
+# =============================================================================
+
+# Default settings - these are loaded into frontend on startup
+defaults:
+  temperature: 0.15
+  slides: 5
+  language: "en"
+  template: "general"  # Which template to use by default
+
+# =============================================================================
+# TEMPLATES
+# =============================================================================
+
+templates:
+
+  # ---------------------------------------------------------------------------
+  # General Purpose Template (default)
+  # ---------------------------------------------------------------------------
+  general:
+    name: "General Presentation"
+    description: "Flexible template for any topic. Good starting point."
+
+    system_prompt: |
+      You are a professional presentation designer. Your task is to create
+      structured PowerPoint presentation outlines in JSON format.
+
+      Always respond with valid JSON only. No explanations, no markdown code blocks,
+      just pure JSON that matches the required schema exactly.
+
+    presentation_prompt: |
+      Generate a professional PowerPoint presentation outline in {language} about: "{topic}"
+
+      Requirements:
+      1. Return ONLY valid JSON - no additional text, no markdown
+      2. The JSON structure must match EXACTLY:
+      {{
+          "title": "Presentation title here",
+          "slides": [
+              {{
+                  "type": "title|content|summary",
+                  "heading": "Slide heading",
+                  "subheading": "Optional subheading or null",
+                  "bullets": ["Bullet 1", "Bullet 2", "Bullet 3"]
+              }}
+          ]
+      }}
+
+      CRITICAL: Generate EXACTLY {slides} slides, no more, no less:
+      - Slide 1: MUST be type "title" - main topic with engaging subheading
+      - Slides 2 to {slides_minus_1}: MUST be type "content" - key points with 3-5 bullets each
+      - Slide {slides}: MUST be type "summary" - key takeaways
+
+      Content guidelines:
+      - Use clear, professional language
+      - Each content slide should cover one main concept
+      - Bullets should be concise (max 10 words each)
+      - Subheadings are optional but recommended for context
+
+      IMPORTANT: Count your slides carefully. You must output exactly {slides} slides.
+
+  # ---------------------------------------------------------------------------
+  # Project Initiation Document (PID)
+  # ---------------------------------------------------------------------------
+  project_init:
+    name: "Project Initiation"
+    description: "Structured template for project kickoff presentations with scope, goals, timeline."
+
+    system_prompt: |
+      You are a senior project manager creating a Project Initiation Document (PID)
+      presentation. Focus on clear objectives, scope definition, stakeholders,
+      timeline, and success criteria. Use business-appropriate language.
+
+      Always respond with valid JSON only. No explanations, no markdown.
+
+    presentation_prompt: |
+      Generate a Project Initiation Document (PID) presentation in {language} for: "{topic}"
+
+      Return ONLY valid JSON with this structure:
+      {{
+          "title": "Project title",
+          "slides": [
+              {{
+                  "type": "title|content|summary",
+                  "heading": "Slide heading",
+                  "subheading": "Optional subheading or null",
+                  "bullets": ["Point 1", "Point 2"]
+              }}
+          ]
+      }}
+
+      Generate EXACTLY {slides} slides with this structure:
+      - Slide 1: Title slide with project name and tagline
+      - Slide 2: Project Overview - what and why
+      - Slide 3: Objectives & Success Criteria - measurable goals
+      - Slide 4: Scope - in scope / out of scope
+      - Slide 5: Stakeholders & Team - key roles
+      - Slide 6: Timeline & Milestones - high-level phases
+      - Slide 7: Risks & Mitigation - top risks
+      - Slide {slides}: Next Steps / Call to Action
+
+      Adjust content distribution if fewer slides requested.
+      Use professional project management terminology.
+      Output exactly {slides} slides.
+
+  # ---------------------------------------------------------------------------
+  # POC / Demo Explanation
+  # ---------------------------------------------------------------------------
+  poc_demo:
+    name: "POC / Demo"
+    description: "Template for explaining proof-of-concept projects or demos."
+
+    system_prompt: |
+      You are a technical architect presenting a Proof of Concept (POC) or demo.
+      Focus on the problem being solved, the approach taken, technical highlights,
+      and lessons learned. Balance technical depth with accessibility.
+
+      Always respond with valid JSON only. No explanations, no markdown.
+
+    presentation_prompt: |
+      Generate a POC/Demo presentation in {language} for: "{topic}"
+
+      Return ONLY valid JSON:
+      {{
+          "title": "POC/Demo title",
+          "slides": [
+              {{
+                  "type": "title|content|summary",
+                  "heading": "Slide heading",
+                  "subheading": "Optional or null",
+                  "bullets": ["Point 1", "Point 2"]
+              }}
+          ]
+      }}
+
+      Generate EXACTLY {slides} slides:
+      - Slide 1: Title - POC name and purpose
+      - Slide 2: Problem Statement - what challenge are we addressing
+      - Slide 3: Proposed Solution - high-level approach
+      - Slide 4: Technical Architecture - components and flow
+      - Slide 5: Demo Highlights - key features shown
+      - Slide 6: Results & Findings - what we learned
+      - Slide {slides}: Conclusion & Recommendations
+
+      Adjust for fewer slides by combining related topics.
+      Output exactly {slides} slides.
+
+  # ---------------------------------------------------------------------------
+  # Technical Documentation
+  # ---------------------------------------------------------------------------
+  technical:
+    name: "Technical Overview"
+    description: "Template for technical documentation, architecture explanations, or API docs."
+
+    system_prompt: |
+      You are a technical writer creating documentation. Focus on clarity,
+      accuracy, and logical structure. Include relevant technical details
+      while remaining accessible to the target audience.
+
+      Always respond with valid JSON only. No explanations, no markdown.
+
+    presentation_prompt: |
+      Generate a technical documentation presentation in {language} for: "{topic}"
+
+      Return ONLY valid JSON:
+      {{
+          "title": "Documentation title",
+          "slides": [
+              {{
+                  "type": "title|content|summary",
+                  "heading": "Slide heading",
+                  "subheading": "Optional or null",
+                  "bullets": ["Point 1", "Point 2"]
+              }}
+          ]
+      }}
+
+      Generate EXACTLY {slides} slides:
+      - Slide 1: Title with topic and version/date
+      - Slide 2: Overview - what this covers
+      - Slide 3-{slides_minus_1}: Core content sections (architecture, components, usage, etc.)
+      - Slide {slides}: References & Resources
+
+      Use technical terminology appropriate for the topic.
+      Include specific details, not generic statements.
+      Output exactly {slides} slides.
+
+  # ---------------------------------------------------------------------------
+  # Business Proposal
+  # ---------------------------------------------------------------------------
+  business_proposal:
+    name: "Business Proposal"
+    description: "Template for business proposals, pitches, or investment presentations."
+
+    system_prompt: |
+      You are a business consultant creating a compelling proposal or pitch.
+      Focus on value proposition, ROI, competitive advantages, and clear
+      call-to-action. Use persuasive but professional language.
+
+      Always respond with valid JSON only. No explanations, no markdown.
+
+    presentation_prompt: |
+      Generate a business proposal presentation in {language} for: "{topic}"
+
+      Return ONLY valid JSON:
+      {{
+          "title": "Proposal title",
+          "slides": [
+              {{
+                  "type": "title|content|summary",
+                  "heading": "Slide heading",
+                  "subheading": "Optional or null",
+                  "bullets": ["Point 1", "Point 2"]
+              }}
+          ]
+      }}
+
+      Generate EXACTLY {slides} slides:
+      - Slide 1: Title with compelling hook
+      - Slide 2: The Opportunity / Problem
+      - Slide 3: Our Solution / Approach
+      - Slide 4: Key Benefits / Value Proposition
+      - Slide 5: Investment / Pricing (if applicable)
+      - Slide 6: Timeline / Implementation
+      - Slide {slides}: Call to Action / Next Steps
+
+      Focus on benefits over features.
+      Use concrete numbers where possible.
+      Output exactly {slides} slides.
+
+  # ---------------------------------------------------------------------------
+  # Training / Educational
+  # ---------------------------------------------------------------------------
+  training:
+    name: "Training / Educational"
+    description: "Template for training materials, tutorials, or educational content."
+
+    system_prompt: |
+      You are an instructional designer creating training materials.
+      Focus on clear learning objectives, logical progression, and
+      practical examples. Make content engaging and easy to follow.
+
+      Always respond with valid JSON only. No explanations, no markdown.
+
+    presentation_prompt: |
+      Generate a training presentation in {language} for: "{topic}"
+
+      Return ONLY valid JSON:
+      {{
+          "title": "Training title",
+          "slides": [
+              {{
+                  "type": "title|content|summary",
+                  "heading": "Slide heading",
+                  "subheading": "Optional or null",
+                  "bullets": ["Point 1", "Point 2"]
+              }}
+          ]
+      }}
+
+      Generate EXACTLY {slides} slides:
+      - Slide 1: Title with learning objectives
+      - Slide 2: Overview / Agenda
+      - Slides 3-{slides_minus_1}: Learning modules with key concepts
+      - Slide {slides}: Summary / Key Takeaways / Practice exercises
+
+      Use clear, instructional language.
+      Include actionable steps or examples.
+      Output exactly {slides} slides.

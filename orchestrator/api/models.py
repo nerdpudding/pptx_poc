@@ -65,10 +65,15 @@ class GenerateRequest(BaseModel):
         le=10,
         description="Number of slides to generate (3-10)"
     )
+    template: Optional[str] = Field(
+        default=None,
+        max_length=50,
+        description="Template key (e.g., 'general', 'project_init', 'poc_demo')"
+    )
     system: Optional[str] = Field(
         default=None,
         max_length=10000,
-        description="Custom system prompt to override default"
+        description="Custom system prompt to override template default"
     )
 
 

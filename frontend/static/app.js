@@ -1,6 +1,6 @@
 /**
  * PPTX POC - Frontend Application
- * Handles API communication and UI updates
+ * Handles API communication, template selection, and UI updates
  */
 
 (function() {
@@ -13,6 +13,7 @@
     const CONFIG = {
         API_BASE_URL: '/api/v1',
         ENDPOINTS: {
+            CONFIG: '/api/v1/config',
             GENERATE: '/api/v1/generate',
             HEALTH: '/health'
         }
@@ -34,13 +35,16 @@
         downloadButton: null,
         previewSection: null,
         previewContent: null,
+        // Template elements
+        templateSelect: null,
+        templateDescription: null,
         // Settings elements
         slidesInput: null,
         slidesValue: null,
         temperatureInput: null,
         temperatureValue: null,
-        numCtxSelect: null,
-        systemPromptInput: null
+        systemPromptInput: null,
+        resetBtn: null
     };
 
 
@@ -50,7 +54,12 @@
 
     let state = {
         isGenerating: false,
-        lastResponse: null
+        lastResponse: null,
+        // Loaded from API
+        defaults: null,
+        templates: [],
+        // Track if user has modified system prompt
+        systemPromptModified: false
     };
 
 
@@ -71,31 +80,198 @@
         elements.previewSection = document.getElementById('previewSection');
         elements.previewContent = document.getElementById('previewContent');
 
+        // Template elements
+        elements.templateSelect = document.getElementById('template');
+        elements.templateDescription = document.getElementById('templateDescription');
+
         // Settings elements
         elements.slidesInput = document.getElementById('slides');
         elements.slidesValue = document.getElementById('slidesValue');
         elements.temperatureInput = document.getElementById('temperature');
         elements.temperatureValue = document.getElementById('temperatureValue');
-        elements.numCtxSelect = document.getElementById('numCtx');
         elements.systemPromptInput = document.getElementById('systemPrompt');
+        elements.resetBtn = document.getElementById('resetBtn');
 
         // Bind event listeners
         if (elements.form) {
             elements.form.addEventListener('submit', handleFormSubmit);
         }
 
-        // Bind settings change listeners
+        // Template change listener
+        if (elements.templateSelect) {
+            elements.templateSelect.addEventListener('change', handleTemplateChange);
+        }
+
+        // Settings change listeners
         if (elements.slidesInput) {
             elements.slidesInput.addEventListener('input', updateSlidesDisplay);
-            updateSlidesDisplay(); // Set initial value
         }
         if (elements.temperatureInput) {
             elements.temperatureInput.addEventListener('input', updateTemperatureDisplay);
-            updateTemperatureDisplay(); // Set initial value
+        }
+        if (elements.systemPromptInput) {
+            elements.systemPromptInput.addEventListener('input', () => {
+                state.systemPromptModified = true;
+            });
         }
 
-        // Check API health on load
-        checkApiHealth();
+        // Reset button
+        if (elements.resetBtn) {
+            elements.resetBtn.addEventListener('click', handleResetToDefaults);
+        }
+
+        // Load configuration from API
+        loadConfiguration();
+    }
+
+
+    // ==========================================================================
+    // Configuration Loading
+    // ==========================================================================
+
+    /**
+     * Load configuration (defaults + templates) from API
+     */
+    async function loadConfiguration() {
+        try {
+            const response = await fetch(CONFIG.ENDPOINTS.CONFIG);
+            if (!response.ok) {
+                throw new Error('Failed to load configuration');
+            }
+
+            const config = await response.json();
+            state.defaults = config.defaults;
+            state.templates = config.templates;
+
+            // Populate template dropdown
+            populateTemplates();
+
+            // Apply defaults
+            applyDefaults();
+
+            updateStatus('Ready to generate presentations', 'info');
+        } catch (error) {
+            console.error('Failed to load configuration:', error);
+            updateStatus('Failed to load configuration. Using fallback defaults.', 'warning');
+
+            // Use fallback defaults
+            state.defaults = {
+                temperature: 0.15,
+                slides: 5,
+                language: 'en',
+                template: 'general'
+            };
+            state.templates = [{
+                key: 'general',
+                name: 'General Presentation',
+                description: 'Flexible template for any topic.',
+                system_prompt: 'You are a professional presentation designer.'
+            }];
+
+            populateTemplates();
+            applyDefaults();
+        }
+    }
+
+    /**
+     * Populate template dropdown from loaded templates
+     */
+    function populateTemplates() {
+        if (!elements.templateSelect || !state.templates.length) return;
+
+        elements.templateSelect.innerHTML = '';
+
+        state.templates.forEach(template => {
+            const option = document.createElement('option');
+            option.value = template.key;
+            option.textContent = template.name;
+            elements.templateSelect.appendChild(option);
+        });
+
+        // Select default template
+        if (state.defaults && state.defaults.template) {
+            elements.templateSelect.value = state.defaults.template;
+        }
+
+        // Update description
+        updateTemplateDescription();
+    }
+
+    /**
+     * Apply default values to form elements
+     */
+    function applyDefaults() {
+        if (!state.defaults) return;
+
+        // Slides
+        if (elements.slidesInput) {
+            elements.slidesInput.value = state.defaults.slides || 5;
+            updateSlidesDisplay();
+        }
+
+        // Temperature
+        if (elements.temperatureInput) {
+            elements.temperatureInput.value = state.defaults.temperature || 0.15;
+            updateTemperatureDisplay();
+        }
+
+        // System prompt from selected template
+        updateSystemPromptFromTemplate();
+    }
+
+    /**
+     * Update template description text
+     */
+    function updateTemplateDescription() {
+        if (!elements.templateDescription || !elements.templateSelect) return;
+
+        const selectedKey = elements.templateSelect.value;
+        const template = state.templates.find(t => t.key === selectedKey);
+
+        if (template) {
+            elements.templateDescription.textContent = template.description;
+        }
+    }
+
+    /**
+     * Update system prompt textarea from selected template
+     */
+    function updateSystemPromptFromTemplate() {
+        if (!elements.systemPromptInput || !elements.templateSelect) return;
+
+        const selectedKey = elements.templateSelect.value;
+        const template = state.templates.find(t => t.key === selectedKey);
+
+        if (template && template.system_prompt) {
+            elements.systemPromptInput.value = template.system_prompt;
+            state.systemPromptModified = false;
+        }
+    }
+
+
+    // ==========================================================================
+    // Event Handlers
+    // ==========================================================================
+
+    /**
+     * Handle template selection change
+     */
+    function handleTemplateChange() {
+        updateTemplateDescription();
+
+        // Only update system prompt if user hasn't modified it
+        if (!state.systemPromptModified) {
+            updateSystemPromptFromTemplate();
+        }
+    }
+
+    /**
+     * Handle reset to defaults button
+     */
+    function handleResetToDefaults() {
+        applyDefaults();
+        state.systemPromptModified = false;
+        updateStatus('Settings reset to defaults', 'info');
     }
 
     /**
@@ -117,15 +293,23 @@
     }
 
     /**
-     * Get current settings values
-     * @returns {Object} Settings object with temperature, slides, system_prompt
+     * Get current form values
+     * @returns {Object} Form values object
      */
-    function getSettingsValues() {
+    function getFormValues() {
+        const selectedKey = elements.templateSelect ? elements.templateSelect.value : 'general';
+        const template = state.templates.find(t => t.key === selectedKey);
+        const currentSystemPrompt = elements.systemPromptInput ? elements.systemPromptInput.value.trim() : '';
+        const templateSystemPrompt = template ? template.system_prompt.trim() : '';
+
+        // Only send system prompt if it differs from template default
+        const systemPromptOverride = currentSystemPrompt !== templateSystemPrompt ? currentSystemPrompt : null;
+
         return {
+            template: selectedKey,
             temperature: elements.temperatureInput ? parseFloat(elements.temperatureInput.value) : 0.15,
-            // num_ctx: disabled for now - model has issues with non-default values
             slides: elements.slidesInput ? parseInt(elements.slidesInput.value, 10) : 5,
-            system_prompt: elements.systemPromptInput ? elements.systemPromptInput.value.trim() : ''
+            system: systemPromptOverride
         };
     }
 
@@ -135,41 +319,24 @@
     // ==========================================================================
 
     /**
-     * Check if the API is healthy
-     */
-    async function checkApiHealth() {
-        try {
-            const response = await fetch(CONFIG.ENDPOINTS.HEALTH);
-            if (response.ok) {
-                updateStatus('Ready to generate presentations', 'info');
-            } else {
-                updateStatus('API is not responding correctly', 'warning');
-            }
-        } catch (error) {
-            updateStatus('Cannot connect to API. Please check if services are running.', 'error');
-            console.error('Health check failed:', error);
-        }
-    }
-
-    /**
      * Generate a presentation via the API
      * @param {string} topic - The presentation topic
      * @returns {Promise<Object>} - The API response
      */
     async function generatePresentation(topic) {
-        const settings = getSettingsValues();
+        const formValues = getFormValues();
 
         const requestBody = {
             topic: topic,
             language: 'en',
-            temperature: settings.temperature,
-            // num_ctx: disabled for now - model has issues with non-default values
-            slides: settings.slides
+            template: formValues.template,
+            temperature: formValues.temperature,
+            slides: formValues.slides
         };
 
-        // Add system prompt if provided
-        if (settings.system_prompt) {
-            requestBody.system = settings.system_prompt;
+        // Add system prompt only if user customized it
+        if (formValues.system) {
+            requestBody.system = formValues.system;
         }
 
         const response = await fetch(CONFIG.ENDPOINTS.GENERATE, {
@@ -191,7 +358,7 @@
 
 
     // ==========================================================================
-    // Event Handlers
+    // Form Submit Handler
     // ==========================================================================
 
     /**

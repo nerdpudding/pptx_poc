@@ -21,3 +21,6 @@ pydantic-settings>=2.1.0,<3.0.0
 
 # Retry logic for Ollama requests
 tenacity>=8.2.0,<9.0.0
+
+# YAML parsing for prompt configuration
+pyyaml>=6.0.0,<7.0.0

@@ -22,6 +22,7 @@ from tenacity import (
 )
 
 from config import Settings, get_settings
+from prompt_loader import get_prompt_loader
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -46,6 +47,7 @@ class OllamaRequest(BaseModel):
     prompt: str
     stream: bool = False
     format: Optional[str] = None  # "json" for JSON mode
+    system: Optional[str] = None  # System prompt
     options: Optional[Dict[str, Any]] = None
 
 class OllamaResponse(BaseModel):
@@ -109,7 +111,9 @@ class OllamaClient:
         language: str = "en",
         slides: int = 3,
         temperature: Optional[float] = None,
-        num_ctx: Optional[int] = None
+        num_ctx: Optional[int] = None,
+        template: Optional[str] = None,
+        system_prompt: Optional[str] = None
     ) -> PresentationContent:
         """
         Generate presentation content using Ollama
@@ -120,6 +124,8 @@ class OllamaClient:
             slides: Number of slides to generate
             temperature: Optional override for Ollama temperature (0.0-2.0)
             num_ctx: Optional override for context window size
+            template: Template key (e.g., "general", "project_init")
+            system_prompt: Custom system prompt (overrides template default)
 
         Returns:
             PresentationContent with structured slide data
@@ -130,16 +136,22 @@ class OllamaClient:
         # Use provided values or fall back to config defaults
         effective_temp = temperature if temperature is not None else self.settings.ollama_temperature
         effective_ctx = num_ctx if num_ctx is not None else self.settings.ollama_num_ctx
+        effective_template = template or "general"
 
-        logger.info(f"Generating presentation: topic='{topic}', language='{language}', slides={slides}, temp={effective_temp}, ctx={effective_ctx}")
+        logger.info(f"Generating presentation: topic='{topic}', language='{language}', slides={slides}, temp={effective_temp}, template='{effective_template}'")
 
-        # Build prompt template
-        prompt = self._build_presentation_prompt(topic, language, slides)
+        # Build prompt from template
+        prompt = self._build_presentation_prompt(topic, language, slides, effective_template)
+
+        # Get system prompt: custom > template default
+        prompt_loader = get_prompt_loader()
+        effective_system = system_prompt if system_prompt else prompt_loader.get_system_prompt(effective_template)
 
         try:
             # Send request to Ollama with options
             response = await self._send_ollama_request(
                 prompt,
+                system=effective_system,
                 temperature=effective_temp,
                 num_ctx=effective_ctx
             )
@@ -183,10 +195,18 @@ class OllamaClient:
         self,
         topic: str,
         language: str,
-        slides: int
+        slides: int,
+        template_key: str = "general"
     ) -> str:
         """
-        Build structured prompt for presentation generation
+        Build structured prompt for presentation generation.
+        Loads prompt template from prompts.yaml configuration.
+
+        Args:
+            topic: Presentation topic
+            language: Target language code
+            slides: Number of slides
+            template_key: Which template to use
 
         Returns:
             Formatted prompt string for Ollama
@@ -194,39 +214,17 @@ class OllamaClient:
         # Ensure slides is within reasonable bounds
         slides = max(1, min(slides, self.settings.max_slides))
 
-        prompt = f"""
-        Generate a professional PowerPoint presentation outline in {language} about: "{topic}"
+        # Load prompt from external configuration
+        prompt_loader = get_prompt_loader()
+        prompt = prompt_loader.get_presentation_prompt(topic, language, slides, template_key)
 
-        Requirements:
-        1. Return ONLY valid JSON - no additional text
-        2. Structure must match exactly:
-        {{
-            "title": "Presentation title",
-            "slides": [
-                {{
-                    "type": "title|content|summary",
-                    "heading": "Slide heading",
-                    "subheading": "Optional subheading",
-                    "bullets": ["Bullet point 1", "Bullet point 2"]
-                }}
-            ]
-        }}
-
-        Presentation should have exactly {slides} slides:
-        - Slide 1: Title slide with main topic and subheading
-        - Slides 2 to {slides - 1}: Content slides with key points
-        - Slide {slides}: Summary slide
-
-        Focus on professional, concise content suitable for business presentations.
-        Use clear headings and bullet points.
-        """
-
-        logger.debug(f"Built prompt for topic '{topic}' with {slides} slides")
-        return prompt.strip()
+        logger.debug(f"Built prompt for topic '{topic}' with {slides} slides using template '{template_key}'")
+        return prompt
 
     async def _send_ollama_request(
         self,
         prompt: str,
+        system: Optional[str],
         temperature: float,
         num_ctx: int
     ) -> str:
@@ -235,6 +233,7 @@ class OllamaClient:
 
         Args:
             prompt: The prompt to send to Ollama
+            system: System prompt for context/role
             temperature: Sampling temperature (0.0-2.0)
             num_ctx: Context window size
 
@@ -250,6 +249,7 @@ class OllamaClient:
         request_data = OllamaRequest(
             model=self.settings.ollama_model,
             prompt=prompt,
+            system=system,
             stream=False,
             format="json",  # Force JSON output from Ollama
             options={
@@ -262,7 +262,7 @@ class OllamaClient:
 
         response = await self.client.post(
             "/api/generate",
-            json=request_data.dict()
+            json=request_data.dict(exclude_none=True)  # Don't send null fields
         )
 
         # Ensure successful response

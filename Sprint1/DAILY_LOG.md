@@ -237,6 +237,58 @@ Sprint1/ollama_api_research.md     - NEW: API docs
 
 ---
 
+### 2025-12-04 - Day 1 (Session 4)
+
+**Status:** Green
+**Focus:** Prompt configuration externalization
+
+#### Tasks Completed
+
+**Prompt Configuration Refactor:**
+- [x] Created `orchestrator/prompts.yaml` - external prompt templates
+- [x] Created `orchestrator/prompt_loader.py` - YAML loader with caching
+- [x] Updated `ollama_client.py` to use external prompts
+- [x] Added PyYAML to `requirements.txt`
+
+**Prompt Templates in YAML:**
+- System prompt for LLM role/context
+- Main presentation prompt with stricter slide count enforcement
+- Short presentation prompt (3 slides or less)
+- Slide regeneration prompt (future use)
+- Bullet expansion prompt (future use)
+
+**Template Variables:**
+- `{topic}` - presentation topic
+- `{language}` - target language
+- `{slides}` - number of slides
+- `{slides_minus_1}` - for "slides 2 to N-1" references
+
+#### Container Testing
+- [x] `docker compose build orchestrator` - Success
+- [x] `docker compose up -d orchestrator` - Success
+- [x] Prompts load from YAML: `prompt_loader - INFO - Loaded prompts from /app/prompts.yaml`
+- [x] Generate endpoint works with external prompts
+
+#### Benefits
+- Developers can edit prompts without touching Python code
+- No container rebuild needed for prompt tweaks (just restart)
+- Clear separation of concerns
+- Fallback prompt if YAML fails to load
+
+#### Known Issue
+- Slide count still not reliable (requested 3, got 4)
+- Need stricter prompt engineering in prompts.yaml
+
+#### Files Changed
+```
+orchestrator/prompts.yaml         - NEW: Prompt templates
+orchestrator/prompt_loader.py     - NEW: YAML loader
+orchestrator/api/ollama_client.py - Uses prompt_loader
+orchestrator/requirements.txt     - Added pyyaml
+```
+
+---
+
 ### [YYYY-MM-DD] - Day X
 
 **Status:** Green / Yellow / Red
