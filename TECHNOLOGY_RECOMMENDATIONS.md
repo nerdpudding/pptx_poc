@@ -155,75 +155,62 @@ Consider adding LangChain in Sprint 2+ if the orchestration becomes more complex
 
 ---
 
-## 5. Suggested docker-compose.yml
+## 5. Actual docker-compose.yml
+
+> **Note:** We use an external Ollama network to share an existing Ollama container (avoids model duplication). Ports are in the 5xxx range to avoid conflicts.
 
 ```yaml
-version: '3.8'
-
 services:
   frontend:
     build: ./frontend
     ports:
-      - "3000:80"
+      - "${FRONTEND_PORT:-5102}:80"
     depends_on:
       - orchestrator
     networks:
-      - pptx-network
+      - default
+      - ollama-network
 
   orchestrator:
     build: ./orchestrator
     ports:
-      - "5000:5000"
-    depends_on:
-      ollama:
-        condition: service_healthy
+      - "${ORCHESTRATOR_PORT:-5100}:8000"
     environment:
-      - OLLAMA_HOST=http://ollama:11434
-      - PPTX_GENERATOR_HOST=http://pptx-generator:5001
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://ollama:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-ministral-3:14b-instruct-2512-q8_0}
+      - PPTX_GENERATOR_URL=http://pptx-generator:8001
     networks:
-      - pptx-network
-
-  ollama:
-    image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama-models:/root/.ollama
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - pptx-network
+      - default
+      - ollama-network
 
   pptx-generator:
     build: ./pptx-generator
     ports:
-      - "5001:5001"
-    volumes:
-      - pptx-output:/app/output
+      - "${PPTX_GENERATOR_PORT:-5101}:8001"
     networks:
-      - pptx-network
-
-volumes:
-  ollama-models:
-  pptx-output:
+      - default
 
 networks:
-  pptx-network:
-    driver: bridge
+  ollama-network:
+    external: true
+    name: ${OLLAMA_NETWORK:-ollama-network}
 ```
+
+> **Ollama Setup:** See [QUICK_INSTALL.md](QUICK_INSTALL.md) for connecting to existing Ollama or fresh install.
 
 ---
 
-## 6. Project Structure Suggestion
+## 6. Actual Project Structure
 
 ```
 pptx_poc/
-├── docker-compose.yml
+├── docker-compose.yml          # Main stack (external Ollama network)
+├── docker-compose.ollama.yml   # Optional: standalone Ollama for fresh installs
+├── .env.example                # Environment template (ports, model)
+├── QUICK_INSTALL.md            # Setup guide with model recommendations
 ├── frontend/
 │   ├── Dockerfile
+│   ├── nginx.conf              # API proxy + static serving
 │   └── static/
 │       ├── index.html
 │       ├── style.css
@@ -231,16 +218,22 @@ pptx_poc/
 ├── orchestrator/
 │   ├── Dockerfile
 │   ├── requirements.txt
-│   ├── main.py
-│   └── prompts.py
+│   ├── main.py                 # FastAPI app (slim, CORS, exception handlers)
+│   ├── config.py               # pydantic-settings configuration
+│   └── api/
+│       ├── __init__.py
+│       ├── models.py           # Pydantic request/response models
+│       ├── routes.py           # API endpoints
+│       └── ollama_client.py    # (pending) Async Ollama HTTP client
 ├── pptx-generator/
 │   ├── Dockerfile
 │   ├── requirements.txt
-│   └── generator.py
-└── docs/
-    ├── PROJECT_PLAN.md
-    ├── TECHNOLOGY_RECOMMENDATIONS.md
-    └── architecture_diagrams.md
+│   ├── generator.py            # FastAPI app with proper models
+│   └── templates/              # (pending) Slide templates
+└── Sprint1/
+    ├── SPRINT1_PLAN.md
+    ├── IMPLEMENTATION_CHECKLIST.md
+    └── DAILY_LOG.md
 ```
 
 ---
@@ -249,17 +242,19 @@ pptx_poc/
 
 ### Orchestrator (requirements.txt)
 ```
-fastapi>=0.109.0
-uvicorn>=0.27.0
-httpx>=0.26.0
-pydantic>=2.5.0
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+httpx>=0.28.0
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
 ```
 
 ### PPTX Generator (requirements.txt)
 ```
-fastapi>=0.109.0
-uvicorn>=0.27.0
-python-pptx>=1.0.0
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+python-pptx>=1.0.2
+pydantic>=2.10.0
 ```
 
 ---
@@ -285,4 +280,8 @@ For Sprint 1, starting with a combined orchestrator+generator may be simpler. Sp
 | Backend framework | FastAPI | Async, Python ecosystem |
 | PPTX library | python-pptx | Stable, standard |
 | LangChain | Skip for MVP | Overkill for simple use case |
-| Container count | 3-4 | Frontend, Backend, Ollama, (optional PPTX) |
+| Container count | 3 + external Ollama | Frontend, Orchestrator, PPTX-Generator (Ollama external) |
+| Ollama integration | External network | Avoids model duplication, shares existing Ollama |
+| Port range | 5xxx | Avoids conflicts with common services |
+| Orchestrator structure | SOLID | config.py, api/models.py, api/routes.py, main.py |
+| Frontend files | Separated | index.html, style.css, app.js for maintainability |

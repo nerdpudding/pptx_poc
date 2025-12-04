@@ -17,11 +17,11 @@
 | Category | Total | Completed | Percentage |
 |----------|-------|-----------|------------|
 | Project Setup | 9 | 9 | 100% |
-| Backend + Container | 22 | 3 | 14% |
-| PPTX Generator + Container | 17 | 3 | 18% |
-| Frontend + Container | 22 | 3 | 14% |
+| Backend + Container | 22 | 12 | 55% |
+| PPTX Generator + Container | 17 | 8 | 47% |
+| Frontend + Container | 22 | 14 | 64% |
 | Integration & Testing | 12 | 0 | 0% |
-| **Total** | **82** | **18** | **22%** |
+| **Total** | **82** | **43** | **52%** |
 
 ---
 
@@ -52,17 +52,17 @@
 - [ ] Test container builds: `docker-compose build orchestrator`
 
 ### FastAPI Application
-- [ ] Create `orchestrator/main.py` with FastAPI app
-- [ ] Create `orchestrator/config.py` for environment variables
-- [ ] Create `orchestrator/api/models.py` (request/response models)
-- [ ] Create `orchestrator/api/routes.py` (API endpoints)
+- [x] Create `orchestrator/main.py` with FastAPI app
+- [x] Create `orchestrator/config.py` for environment variables (pydantic-settings)
+- [x] Create `orchestrator/api/models.py` (request/response models with Field validation)
+- [x] Create `orchestrator/api/routes.py` (API endpoints with dependency injection)
 
 ### API Endpoints
-- [ ] Implement `POST /api/v1/generate` endpoint
-- [ ] Add request validation (topic required)
-- [ ] Add response formatting
-- [ ] Implement error handling middleware
-- [ ] Add `GET /health` endpoint
+- [x] Implement `POST /api/v1/generate` endpoint
+- [x] Add request validation (topic required, max 500 chars)
+- [x] Add response formatting (success, fileId, downloadUrl, preview)
+- [x] Implement error handling middleware (validation + general exceptions)
+- [x] Add `GET /health` endpoint
 
 ### Ollama Integration
 - [ ] Create `orchestrator/api/ollama_client.py`
@@ -91,11 +91,11 @@
 - [ ] Test container builds: `docker-compose build pptx-generator`
 
 ### Core Service
-- [ ] Create `pptx-generator/generator.py` with FastAPI app
+- [x] Create `pptx-generator/generator.py` with FastAPI app
 - [ ] Create `pptx-generator/config.py` for configuration
-- [ ] Implement `POST /generate` endpoint (receives JSON, returns file ID)
-- [ ] Implement `GET /download/{file_id}` endpoint
-- [ ] Add `GET /health` endpoint
+- [x] Implement `POST /generate` endpoint (receives JSON, returns file ID)
+- [x] Implement `GET /download/{file_id}` endpoint (placeholder)
+- [x] Add `GET /health` endpoint
 
 ### PPTX Generation
 - [ ] Create `pptx-generator/templates/basic_template.py`
@@ -124,31 +124,31 @@
 - [ ] Test container builds: `docker-compose build frontend`
 
 ### HTML Structure
-- [ ] Create `frontend/static/index.html`
-- [ ] Add input field for presentation topic
-- [ ] Add submit button
-- [ ] Add download button (hidden initially)
-- [ ] Add error message container
-- [ ] Add loading spinner element
-- [ ] Add responsive meta tags
+- [x] Create `frontend/static/index.html`
+- [x] Add input field for presentation topic
+- [x] Add submit button
+- [x] Add download button (hidden initially)
+- [x] Add error message container
+- [x] Add loading spinner element
+- [x] Add responsive meta tags
 
 ### CSS Styling
-- [ ] Create `frontend/static/style.css`
-- [ ] Style layout and form elements
-- [ ] Style loading spinner animation
-- [ ] Style error messages
-- [ ] Add responsive design
-- [ ] Add professional color scheme
+- [x] Create `frontend/static/style.css`
+- [x] Style layout and form elements
+- [x] Style loading spinner animation
+- [x] Style error messages
+- [x] Add responsive design
+- [x] Add professional color scheme
 
 ### JavaScript Functionality
-- [ ] Create `frontend/static/app.js`
-- [ ] Implement form submission handler
-- [ ] Add fetch call to `/api/v1/generate`
-- [ ] Implement response handling
-- [ ] Add download functionality
-- [ ] Implement error display
-- [ ] Add input validation
-- [ ] Add loading state management
+- [x] Create `frontend/static/app.js`
+- [x] Implement form submission handler
+- [x] Add fetch call to `/api/v1/generate`
+- [x] Implement response handling
+- [x] Add download functionality
+- [x] Implement error display (XSS-safe with textContent)
+- [x] Add input validation
+- [x] Add loading state management
 
 ### Container Testing
 - [ ] Test `docker-compose up frontend`
