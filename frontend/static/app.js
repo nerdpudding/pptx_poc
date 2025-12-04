@@ -39,7 +39,8 @@
         slidesValue: null,
         temperatureInput: null,
         temperatureValue: null,
-        numCtxSelect: null
+        numCtxSelect: null,
+        systemPromptInput: null
     };
 
 
@@ -76,6 +77,7 @@
         elements.temperatureInput = document.getElementById('temperature');
         elements.temperatureValue = document.getElementById('temperatureValue');
         elements.numCtxSelect = document.getElementById('numCtx');
+        elements.systemPromptInput = document.getElementById('systemPrompt');
 
         // Bind event listeners
         if (elements.form) {
@@ -116,13 +118,14 @@
 
     /**
      * Get current settings values
-     * @returns {Object} Settings object with temperature, num_ctx, slides
+     * @returns {Object} Settings object with temperature, slides, system_prompt
      */
     function getSettingsValues() {
         return {
             temperature: elements.temperatureInput ? parseFloat(elements.temperatureInput.value) : 0.15,
-            num_ctx: elements.numCtxSelect ? parseInt(elements.numCtxSelect.value, 10) : 122880,
-            slides: elements.slidesInput ? parseInt(elements.slidesInput.value, 10) : 5
+            // num_ctx: disabled for now - model has issues with non-default values
+            slides: elements.slidesInput ? parseInt(elements.slidesInput.value, 10) : 5,
+            system_prompt: elements.systemPromptInput ? elements.systemPromptInput.value.trim() : ''
         };
     }
 
@@ -156,18 +159,25 @@
     async function generatePresentation(topic) {
         const settings = getSettingsValues();
 
+        const requestBody = {
+            topic: topic,
+            language: 'en',
+            temperature: settings.temperature,
+            // num_ctx: disabled for now - model has issues with non-default values
+            slides: settings.slides
+        };
+
+        // Add system prompt if provided
+        if (settings.system_prompt) {
+            requestBody.system = settings.system_prompt;
+        }
+
         const response = await fetch(CONFIG.ENDPOINTS.GENERATE, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                topic: topic,
-                language: 'en',
-                temperature: settings.temperature,
-                num_ctx: settings.num_ctx,
-                slides: settings.slides
-            })
+            body: JSON.stringify(requestBody)
         });
 
         if (!response.ok) {

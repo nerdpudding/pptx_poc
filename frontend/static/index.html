@@ -52,15 +52,22 @@
                         <small class="setting-hint">Lower = consistent, Higher = creative</small>
                     </div>
                     <div class="setting-item">
-                        <label for="numCtx">Context Size</label>
+                        <label for="numCtx">Context Size (TODO: fix)</label>
                         <div class="setting-control">
-                            <select id="numCtx">
-                                <option value="32768">32K (Faster)</option>
-                                <option value="65536">64K</option>
+                            <select id="numCtx" disabled>
+                                <option value="65536">64K (Faster)</option>
+                                <option value="102400">100K</option>
                                 <option value="122880" selected>120K (Default)</option>
                             </select>
                         </div>
-                        <small class="setting-hint">Larger allows more complex prompts</small>
+                        <small class="setting-hint" style="color: orange;">Uses modelfile default for now</small>
+                    </div>
+                    <div class="setting-item">
+                        <label for="systemPrompt">System Prompt (optional)</label>
+                        <div class="setting-control">
+                            <textarea id="systemPrompt" rows="3" placeholder="Custom instructions for the AI..."></textarea>
+                        </div>
+                        <small class="setting-hint">Override default system message</small>
                     </div>
                 </div>
             </details>

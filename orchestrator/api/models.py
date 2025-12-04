@@ -55,15 +55,20 @@ class GenerateRequest(BaseModel):
     )
     num_ctx: Optional[int] = Field(
         default=None,
-        ge=2048,
+        ge=65536,
         le=262144,
-        description="Context window size (2K-256K). Larger allows longer prompts but uses more VRAM"
+        description="Context window size (64K-256K). Currently disabled - uses modelfile default"
     )
     slides: Optional[int] = Field(
         default=None,
         ge=3,
         le=10,
         description="Number of slides to generate (3-10)"
+    )
+    system: Optional[str] = Field(
+        default=None,
+        max_length=10000,
+        description="Custom system prompt to override default"
     )
 
 
@@ -113,9 +118,9 @@ class StreamRequest(BaseModel):
     # Output control
     num_ctx: Optional[int] = Field(
         default=None,
-        ge=2048,
+        ge=65536,
         le=262144,
-        description="Context window size (2K-256K)"
+        description="Context window size (64K-256K)"
     )
     num_predict: Optional[int] = Field(
         default=None,

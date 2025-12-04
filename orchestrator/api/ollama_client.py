@@ -245,14 +245,16 @@ class OllamaClient:
             httpx.RequestError: If request fails
             httpx.HTTPStatusError: If HTTP error occurs
         """
+        # NOTE: num_ctx is NOT sent - model has issues with non-default values
+        # Uses modelfile default (122880) instead
         request_data = OllamaRequest(
             model=self.settings.ollama_model,
             prompt=prompt,
             stream=False,
             format="json",  # Force JSON output from Ollama
             options={
-                "temperature": temperature,
-                "num_ctx": num_ctx
+                "temperature": temperature
+                # "num_ctx": num_ctx  # TODO: fix - disabled for now
             }
         )
 
@@ -395,11 +397,12 @@ class OllamaClient:
             Dict with 'response' text and 'done' status
         """
         # Build options dict with only provided values
+        # NOTE: num_ctx is NOT sent - model has issues with non-default values
         options = {}
         if temperature is not None:
             options["temperature"] = temperature
-        if num_ctx is not None:
-            options["num_ctx"] = num_ctx
+        # if num_ctx is not None:  # TODO: fix - disabled for now
+        #     options["num_ctx"] = num_ctx
         if num_predict is not None:
             options["num_predict"] = num_predict
         if top_k is not None:

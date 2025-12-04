@@ -207,11 +207,18 @@ pie title Sprint 1 Progress
 #### Known Issues
 - Generation is slow (~3.7 t/s) - expected with 14B Q8 model and large context
 - Main `/api/v1/generate` endpoint still has JSON parsing issues (use debug panel for now)
+- **num_ctx bug:** Model crashes or generates repetitions when num_ctx is passed via API (see `ollama_api_research.md` for details). Workaround: don't send num_ctx, use modelfile default.
 
 #### Learnings
 - Ollama `format: "json"` is essential for reliable JSON output
 - File permissions matter in Docker - 600 permissions block nginx
 - SSE streaming requires `X-Accel-Buffering: no` header for nginx
+- num_ctx override via API doesn't work reliably with this model - use modelfile default
+
+#### Open Questions (for later)
+- How does OpenWebUI handle num_ctx? (it works there)
+- Should we explicitly load/unload model with `keep_alive` parameter?
+- Is there a model loading sequence required before changing parameters?
 
 #### Files Changed
 ```
@@ -393,3 +400,5 @@ Integration:[===       ] 33%
 | PPTX file creation | Not started | python-pptx integration pending |
 | Download functionality | Placeholder | Returns 501 |
 | Performance | Slow | ~3.7 t/s - consider smaller model/context |
+| num_ctx parameter | Bug | Model crashes with non-default values - disabled for now |
+| Ollama model loading | Unknown | Need to investigate keep_alive and loading sequence |

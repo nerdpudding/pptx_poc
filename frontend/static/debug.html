@@ -213,20 +213,18 @@
                         <span class="range-value" id="tempValue">0.15</span>
                     </div>
                     <div class="param-item">
-                        <label for="numCtx">Context Size</label>
-                        <select id="numCtx">
-                            <option value="4096">4K</option>
-                            <option value="8192">8K</option>
-                            <option value="16384">16K</option>
-                            <option value="32768">32K</option>
+                        <label for="numCtx">Context Size (TODO: fix)</label>
+                        <select id="numCtx" disabled>
                             <option value="65536">64K</option>
+                            <option value="81920">80K</option>
                             <option value="102400">100K</option>
-                            <option value="122880" selected>120K</option>
+                            <option value="122880" selected>120K (Default)</option>
                             <option value="131072">128K</option>
                             <option value="174080">170K</option>
                             <option value="204800">200K</option>
                             <option value="262144">256K</option>
                         </select>
+                        <small style="color: orange;">Currently uses modelfile default</small>
                     </div>
                     <div class="param-item">
                         <label for="numPredict">Max Tokens</label>
@@ -409,10 +407,11 @@
             updateStats();
 
             // Build request
+            // NOTE: num_ctx is disabled for now - model has issues with non-default values
             const requestBody = {
                 prompt: prompt,
                 temperature: parseFloat(elements.temperature.value),
-                num_ctx: parseInt(elements.numCtx.value),
+                // num_ctx: parseInt(elements.numCtx.value),  // TODO: fix - uses modelfile default for now
                 num_predict: parseInt(elements.numPredict.value),
                 top_k: parseInt(elements.topK.value),
                 top_p: parseFloat(elements.topP.value),

@@ -335,4 +335,50 @@ Parameters om exposed te maken:
 
 ---
 
+---
+
+## Bekende Issues
+
+### num_ctx Bug met ministral-3-14b-it-2512-q8-120k Model
+
+**Ontdekt:** 2025-12-04
+
+**Symptomen:**
+- Bij het meesturen van `num_ctx` in de options crasht het model of genereert het herhalende tokens ("HereHereHere...")
+- Ollama logs tonen: `llama runner terminated` met `exit status 2`
+- Alleen de exacte modelfile waarde (122880) of GEEN num_ctx werkt
+
+**Geteste waarden:**
+| num_ctx | Resultaat |
+|---------|-----------|
+| 4096 | CRASH |
+| 8192 | Herhalingen |
+| 16384 | Herhalingen |
+| 32768 | Herhalingen |
+| 65536 | Herhalingen (inconsistent) |
+| 122880 | WERKT |
+| Niet meesturen | WERKT |
+
+**Workaround:**
+- Stuur `num_ctx` NIET mee in de API request
+- Model gebruikt dan automatisch de modelfile default (122880)
+
+**Mogelijke oorzaken (nog te onderzoeken):**
+1. Modelfile heeft `PARSER ministral` - mogelijk conflict met num_ctx override
+2. Model is specifiek getraind/geconfigureerd voor 120K context
+3. Ollama bug met dit specifieke model bij context resizing
+4. Mogelijk moet model eerst unloaded worden voordat num_ctx gewijzigd kan worden
+
+**Te onderzoeken:**
+- Hoe OpenWebUI met num_ctx omgaat (daar werkt het wel)
+- Ollama `keep_alive` parameter en model loading/unloading
+- Of model eerst expliciet unloaded moet worden bij parameter wijzigingen
+
+**Huidige implementatie:**
+- num_ctx is disabled in frontend (slider/dropdown uitgeschakeld)
+- Backend stuurt num_ctx niet mee naar Ollama
+- Model gebruikt altijd de modelfile default (122880)
+
+---
+
 *Laatste update: 2025-12-04*
