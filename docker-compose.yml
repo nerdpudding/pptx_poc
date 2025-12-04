@@ -1,0 +1,116 @@
+# =============================================================================
+# PPTX POC - Main Docker Compose Stack
+# =============================================================================
+# This stack connects to an EXTERNAL Ollama instance running on ollama-network.
+#
+# PREREQUISITES:
+#   1. An Ollama container running and connected to 'ollama-network'
+#   2. If you don't have Ollama, run: docker-compose -f docker-compose.ollama.yml up -d
+#
+# USAGE:
+#   docker-compose up -d
+#
+# PORTS (configurable via .env file):
+#   - Orchestrator API: ${ORCHESTRATOR_PORT:-5100}
+#   - PPTX Generator:   ${PPTX_GENERATOR_PORT:-5101}
+#   - Frontend:         ${FRONTEND_PORT:-5102}
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Orchestrator service - main backend API
+  # ---------------------------------------------------------------------------
+  orchestrator:
+    build:
+      context: ./orchestrator
+      dockerfile: Dockerfile
+    ports:
+      - "${ORCHESTRATOR_PORT:-5100}:8000"
+    volumes:
+      - ./orchestrator:/app
+    environment:
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://ollama:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-ministral-3-14b-it-2512}
+      - PPTX_GENERATOR_URL=http://pptx-generator:8001
+    networks:
+      - internal
+      - ollama-network
+    depends_on:
+      - pptx-generator
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
+  # PPTX Generator service - handles PowerPoint generation
+  # ---------------------------------------------------------------------------
+  pptx-generator:
+    build:
+      context: ./pptx-generator
+      dockerfile: Dockerfile
+    ports:
+      - "${PPTX_GENERATOR_PORT:-5101}:8001"
+    volumes:
+      - ./pptx-generator:/app
+      - pptx-output:/app/output
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - internal
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
+  # Frontend service - Nginx serving static files
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "${FRONTEND_PORT:-5102}:80"
+    volumes:
+      - ./frontend/static:/usr/share/nginx/html:ro
+    environment:
+      - ORCHESTRATOR_URL=http://orchestrator:8000
+    networks:
+      - internal
+    depends_on:
+      - orchestrator
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  # Internal network for service-to-service communication
+  internal:
+    driver: bridge
+
+  # External network where Ollama is running
+  # This network must exist before starting this stack.
+  # Create it with: docker network create ollama-network
+  # Or use docker-compose.ollama.yml which creates it automatically.
+  ollama-network:
+    external: true
+    name: ${OLLAMA_NETWORK:-ollama-network}
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+volumes:
+  # Persistent storage for generated PPTX files
+  pptx-output:
+    driver: local

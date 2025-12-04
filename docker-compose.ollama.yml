@@ -1,0 +1,89 @@
+# =============================================================================
+# PPTX POC - Ollama Service (Optional/Standalone)
+# =============================================================================
+# Use this file ONLY if you don't already have Ollama running.
+#
+# This creates:
+#   1. The 'ollama-network' that the main stack expects
+#   2. An Ollama container with persistent model storage
+#   3. GPU support with optimized KV cache settings
+#
+# USAGE:
+#   # Start Ollama (first time or clean environment)
+#   docker-compose -f docker-compose.ollama.yml up -d
+#
+#   # Pull a model (choose based on your VRAM - see .env.example for options)
+#   docker exec ollama ollama pull ministral-3:14b-instruct-2512-q8_0
+#
+#   # Then start the main stack
+#   docker-compose up -d
+#
+# NOTE FOR EXISTING OLLAMA USERS:
+#   If you already have Ollama running, ensure it's connected to 'ollama-network':
+#     docker network create ollama-network (if not exists)
+#     docker network connect ollama-network <your-ollama-container>
+#
+# ALTERNATIVE: Manual Docker Run (for more control)
+#   If you prefer running Ollama manually with specific GPU settings:
+#
+#   docker run -d \
+#     --network ollama-network \
+#     --gpus device=all \
+#     -v ollama:/root/.ollama \
+#     -p 11434:11434 \
+#     --name ollama \
+#     -e OLLAMA_FLASH_ATTENTION=1 \
+#     -e OLLAMA_KV_CACHE_TYPE=q8_0 \
+#     ollama/ollama
+#
+#   The KV cache in q8_0 mode saves significant VRAM!
+# =============================================================================
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ${OLLAMA_CONTAINER_NAME:-ollama}
+    ports:
+      # Exposed on 5199 to avoid conflicts with existing Ollama instances
+      # Internal port remains 11434 for network communication
+      - "${OLLAMA_EXTERNAL_PORT:-5199}:11434"
+    volumes:
+      # Persistent storage for downloaded models
+      - ollama-models:/root/.ollama
+    networks:
+      - ollama-network
+    environment:
+      # Enable Flash Attention for better performance
+      - OLLAMA_FLASH_ATTENTION=1
+      # Use q8_0 KV cache to save VRAM (highly recommended!)
+      - OLLAMA_KV_CACHE_TYPE=q8_0
+    restart: unless-stopped
+    # GPU support - uncomment the deploy section for NVIDIA GPU
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  ollama-network:
+    name: ${OLLAMA_NETWORK:-ollama-network}
+    driver: bridge
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+volumes:
+  ollama-models:
+    driver: local

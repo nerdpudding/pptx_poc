@@ -41,23 +41,43 @@ This repository contains the complete project plan and architecture for the Powe
   - Data flow and sequence diagrams
   - Service dependencies
 
-## 🚀 Quick Start Guide
+## 🚀 Quick Start
+
+**See [QUICK_INSTALL.md](QUICK_INSTALL.md) for full setup instructions.**
+
+```bash
+# 1. Clone and configure
+git clone <repository-url>
+cd pptx_poc
+cp .env.example .env
+
+# 2. Setup Ollama (skip if you already have one running)
+docker-compose -f docker-compose.ollama.yml up -d
+docker exec ollama ollama pull ministral-3:14b-instruct-2512-q8_0
+
+# 3. Start the stack
+docker-compose up -d
+```
 
 ### Project Structure
 ```
 pptx_poc/
+├── docker-compose.yml       # Main stack (connects to external Ollama)
+├── docker-compose.ollama.yml # Optional: standalone Ollama for fresh installs
+├── .env.example             # Environment template with port/model config
+├── QUICK_INSTALL.md         # Setup guide with model recommendations
 ├── PROJECT_PLAN.md          # Complete project documentation
+├── TECHNOLOGY_RECOMMENDATIONS.md # Technology research and decisions
 ├── architecture_diagrams.md # Visual architecture diagrams
-├── readme.md                # This file
-└── (future implementation files)
+└── Sprint1/                 # Sprint 1 planning documents
 ```
 
-### Key Technologies (Research Completed ✅)
-- **AI Backend:** Ollama with **ministral-3-14b-it-2512** (Q8 quantized)
-- **Containerization:** Docker with microservices architecture
-- **Frontend:** nginx:alpine serving vanilla HTML/CSS/JS
-- **Orchestrator:** FastAPI (Python) with async Ollama integration
-- **PPTX Generation:** python-pptx v1.0.0
+### Key Technologies
+- **AI Backend:** Ollama with ministral-3 models (configurable by VRAM)
+- **Containerization:** Docker with external network for Ollama sharing
+- **Frontend:** nginx:alpine serving vanilla HTML/CSS/JS (port 5102)
+- **Orchestrator:** FastAPI with async Ollama integration (port 5100)
+- **PPTX Generation:** python-pptx v1.0.0 (port 5101)
 
 > See [TECHNOLOGY_RECOMMENDATIONS.md](TECHNOLOGY_RECOMMENDATIONS.md) for full rationale and examples.
 
@@ -114,10 +134,10 @@ graph LR
 ```
 
 ### Docker Services
-- **Frontend Container** - Web interface (Port 3000)
-- **Orchestrator Container** - API service (Port 5000)
-- **Ollama Container** - AI model (Port 11434)
-- **PPTX Generator Container** - File generation (Port 5001)
+- **Frontend Container** - Web interface (Port 5102)
+- **Orchestrator Container** - API service (Port 5100)
+- **Ollama Container** - External, shared via `ollama-network` (Port 11434 internal)
+- **PPTX Generator Container** - File generation (Port 5101)
 
 ## 🔮 Future Roadmap
 
@@ -136,17 +156,12 @@ graph LR
 5. **Follow Docker best practices** - Maintain containerized approach
 
 ### Development Setup
-```bash
-# Clone the repository
-git clone [repository-url]
-cd pptx_poc
 
-# Review documentation
-cat PROJECT_PLAN.md
-cat architecture_diagrams.md
-
-# Implementation will follow in Sprint 1
-```
+See [QUICK_INSTALL.md](QUICK_INSTALL.md) for detailed setup instructions, including:
+- Environment configuration (`.env`)
+- Ollama setup (fresh install vs existing)
+- Model selection guide by GPU VRAM
+- Docker network strategy explanation
 
 ## 📞 Contact & Support
 
