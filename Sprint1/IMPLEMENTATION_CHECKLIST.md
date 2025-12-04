@@ -16,24 +16,28 @@
 
 | Category | Total | Completed | Percentage |
 |----------|-------|-----------|------------|
-| Project Setup | 5 | 0 | 0% |
+| Project Setup | 9 | 9 | 100% |
 | Backend + Container | 22 | 0 | 0% |
 | PPTX Generator + Container | 17 | 0 | 0% |
 | Frontend + Container | 22 | 0 | 0% |
 | Integration & Testing | 12 | 0 | 0% |
-| **Total** | **78** | **0** | **0%** |
+| **Total** | **82** | **9** | **11%** |
 
 ---
 
-## Phase 0: Project Setup
+## Phase 0: Project Setup (✅ COMPLETE)
 
-> **Do this first before any development**
+> **Docker infrastructure is ready.** See [QUICK_INSTALL.md](../QUICK_INSTALL.md) for setup.
 
-- [ ] Create `frontend/static/` directory
-- [ ] Create `orchestrator/api/` directory
-- [ ] Create `pptx-generator/templates/` directory
-- [ ] Create initial `docker-compose.yml` skeleton
-- [ ] Verify Ollama is running and accessible
+- [x] Create `docker-compose.yml` (main stack, external Ollama network)
+- [x] Create `docker-compose.ollama.yml` (optional standalone Ollama)
+- [x] Create `.env.example` with port/model configuration
+- [x] Create `QUICK_INSTALL.md` setup guide
+- [x] Create `frontend/static/` directory
+- [x] Create `orchestrator/api/` directory
+- [x] Create `pptx-generator/templates/` directory
+- [x] Configure `.env` for your environment
+- [x] Verify Ollama is connected to `ollama-network`
 
 ---
 
@@ -180,12 +184,23 @@
 
 | Step | What to Do | Test Command |
 |------|------------|--------------|
-| 1 | Create project folders | `ls -la` |
-| 2 | Create docker-compose.yml skeleton | `docker-compose config` |
-| 3 | Backend code + Dockerfile | `docker-compose up orchestrator` |
-| 4 | PPTX Generator code + Dockerfile | `docker-compose up pptx-generator` |
-| 5 | Frontend code + Dockerfile | `docker-compose up frontend` |
-| 6 | Full integration | `docker-compose up` |
+| 1 | Configure environment | `cp .env.example .env` |
+| 2 | Setup Ollama network | See [QUICK_INSTALL.md](../QUICK_INSTALL.md) |
+| 3 | Create project folders | `mkdir -p frontend/static orchestrator/api pptx-generator/templates` |
+| 4 | Backend code + Dockerfile | `docker-compose up orchestrator` |
+| 5 | PPTX Generator code + Dockerfile | `docker-compose up pptx-generator` |
+| 6 | Frontend code + Dockerfile | `docker-compose up frontend` |
+| 7 | Full integration | `docker-compose up` |
+
+## Service Ports
+
+| Service | Host Port | Internal Port | URL |
+|---------|-----------|---------------|-----|
+| Orchestrator | 5100 | 8000 | http://localhost:5100 |
+| PPTX Generator | 5101 | 8001 | http://localhost:5101 |
+| Frontend | 5102 | 80 | http://localhost:5102 |
+
+> Ports configurable via `.env`. See [QUICK_INSTALL.md](../QUICK_INSTALL.md).
 
 ---
 

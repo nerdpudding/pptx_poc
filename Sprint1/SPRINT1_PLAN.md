@@ -37,22 +37,35 @@ For each component:
 
 ## Implementation Phases
 
-### Phase 0: Project Setup
-**Estimate:** 1 hour
+### Phase 0: Project Setup (✅ COMPLETE)
 
-Create the complete project structure upfront.
+Docker infrastructure is ready. See [QUICK_INSTALL.md](../QUICK_INSTALL.md) for setup instructions.
 
 ```bash
-# Create all directories
+# Create service directories
 mkdir -p frontend/static
 mkdir -p orchestrator/api
 mkdir -p pptx-generator/templates
+
+# Configure environment
+cp .env.example .env
+# Edit .env to set OLLAMA_MODEL for your GPU VRAM
+
+# Setup Ollama (choose one):
+# Option A - Fresh install:
+docker-compose -f docker-compose.ollama.yml up -d
+# Option B - Existing Ollama:
+docker network connect ollama-network <your-ollama-container>
 ```
 
-**Files to Create:**
+**Project Structure:**
 ```
 pptx_poc/
-├── docker-compose.yml          # Create first, add services incrementally
+├── docker-compose.yml          # Main stack (ports 5100-5102, external Ollama)
+├── docker-compose.ollama.yml   # Optional: standalone Ollama for fresh installs
+├── .env.example                # Environment template (ports, model config)
+├── .env                        # Your local config (git-ignored)
+├── QUICK_INSTALL.md            # Setup guide with model recommendations
 ├── frontend/
 │   ├── Dockerfile
 │   ├── nginx.conf
@@ -140,12 +153,24 @@ All services running together in containers.
 
 | Resource | Location |
 |----------|----------|
+| **Quick Install Guide** | [QUICK_INSTALL.md](../QUICK_INSTALL.md) |
 | **Task Checklist** | [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md) |
 | **Daily Progress** | [DAILY_LOG.md](DAILY_LOG.md) |
 | **API Contracts** | [PROJECT_PLAN.md](../PROJECT_PLAN.md#api-contracts) |
 | **Risk Assessment** | [PROJECT_PLAN.md](../PROJECT_PLAN.md#risk-assessment) |
 | **Technology Stack** | [TECHNOLOGY_RECOMMENDATIONS.md](../TECHNOLOGY_RECOMMENDATIONS.md) |
 | **Architecture Diagrams** | [architecture_diagrams.md](../architecture_diagrams.md) |
+
+## Service Ports
+
+| Service | Host Port | Internal Port |
+|---------|-----------|---------------|
+| Orchestrator API | 5100 | 8000 |
+| PPTX Generator | 5101 | 8001 |
+| Frontend | 5102 | 80 |
+| Ollama | (external) | 11434 |
+
+> Ports configurable via `.env` file. See [QUICK_INSTALL.md](../QUICK_INSTALL.md) for details.
 
 ---
 
