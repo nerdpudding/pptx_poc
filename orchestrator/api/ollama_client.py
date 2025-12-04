@@ -61,13 +61,13 @@ class OllamaResponse(BaseModel):
 class SlideContent(BaseModel):
     """Structured slide content from Ollama response"""
     type: SlideType
-    heading: str = Field(..., min_length=1, max_length=200)
-    subheading: Optional[str] = Field(default=None, max_length=300)
+    heading: str = Field(..., min_length=1, max_length=500)
+    subheading: Optional[str] = Field(default=None, max_length=500)
     bullets: Optional[list[str]] = Field(default=None, max_items=10)
 
 class PresentationContent(BaseModel):
     """Complete presentation structure"""
-    title: str = Field(..., min_length=1, max_length=200)
+    title: str = Field(..., min_length=1, max_length=500)
     slides: list[SlideContent] = Field(..., min_length=1, max_length=20)
 
 # =============================================================================
@@ -186,6 +186,50 @@ class OllamaClient:
                     }
                 }
             )
+
+    # =============================================================================
+    # Custom Prompt Generation
+    # =============================================================================
+
+    async def generate_from_prompt(
+        self,
+        prompt: str,
+        system_prompt: str,
+        temperature: Optional[float] = None
+    ) -> PresentationContent:
+        """
+        Generate presentation content from a custom prompt.
+        Used for draft generation from conversation context.
+
+        Args:
+            prompt: The full prompt with context
+            system_prompt: System prompt for LLM behavior
+            temperature: Optional temperature override
+
+        Returns:
+            PresentationContent with structured slide data
+        """
+        effective_temp = temperature if temperature is not None else self.settings.ollama_temperature
+
+        logger.info(f"Generating presentation from custom prompt, temp={effective_temp}")
+
+        try:
+            response = await self._send_ollama_request(
+                prompt=prompt,
+                system=system_prompt,
+                temperature=effective_temp,
+                num_ctx=self.settings.ollama_num_ctx
+            )
+
+            # Parse JSON response
+            presentation_data = self._parse_ollama_response(response)
+
+            # Validate and return structured content
+            return self._validate_presentation_content(presentation_data)
+
+        except Exception as e:
+            logger.error(f"Error generating from custom prompt: {e}")
+            raise
 
     # =============================================================================
     # Helper Methods

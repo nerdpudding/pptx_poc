@@ -167,34 +167,57 @@ When you have gathered all necessary information, end your response with exactly
         full_response = ""
         is_ready = False
 
+        # Buffer to handle marker that might span chunks
+        pending_text = ""
+        MARKER = "[READY_FOR_DRAFT]"
+
         async with ollama_client:
             async for chunk in ollama_client.stream_generate(
                 prompt=prompt,
                 system=system_prompt,
                 temperature=settings.ollama_temperature,
             ):
-                content = chunk.get("response", "")
+                raw_content = chunk.get("response", "")
                 done = chunk.get("done", False)
 
-                full_response += content
+                # Add to pending buffer
+                pending_text += raw_content
+                full_response += raw_content
 
-                # Check for ready marker
-                if "[READY_FOR_DRAFT]" in full_response:
+                # Check if marker is complete in full response
+                if MARKER in full_response:
                     is_ready = True
-                    # Remove marker from response
-                    content = content.replace("[READY_FOR_DRAFT]", "").strip()
 
-                # Send chunk
-                data = json.dumps({
-                    "content": content,
-                    "done": done,
-                    "is_ready_for_draft": is_ready if done else False
-                })
-                yield f"data: {data}\n\n"
+                # Determine what to send: if we might have partial marker, hold back
+                if done:
+                    # On final chunk, send everything (minus marker)
+                    content_to_send = pending_text.replace(MARKER, "")
+                    pending_text = ""
+                elif MARKER in pending_text:
+                    # Marker found, remove it and send
+                    content_to_send = pending_text.replace(MARKER, "")
+                    pending_text = ""
+                elif len(pending_text) > len(MARKER):
+                    # Safe to send everything except last MARKER-length chars (in case partial)
+                    safe_length = len(pending_text) - len(MARKER)
+                    content_to_send = pending_text[:safe_length]
+                    pending_text = pending_text[safe_length:]
+                else:
+                    # Buffer too small, wait for more
+                    content_to_send = ""
+
+                # Only send if we have content
+                if content_to_send or done:
+                    data = json.dumps({
+                        "content": content_to_send,
+                        "done": done,
+                        "is_ready_for_draft": is_ready if done else False
+                    })
+                    yield f"data: {data}\n\n"
 
                 if done:
                     # Clean up marker from full response before saving
-                    clean_response = full_response.replace("[READY_FOR_DRAFT]", "").strip()
+                    clean_response = full_response.replace(MARKER, "").strip()
 
                     # Save assistant response to session
                     session_manager.add_message(session_id, "assistant", clean_response)
@@ -259,13 +282,20 @@ async def generate_draft(
         for msg in conversation_history
     ])
 
+    # Build system prompt for draft generation
+    required_info_text = ""
+    if guided_config and guided_config.get('required_info'):
+        required_info_text = "Required information:\n" + "\n".join(
+            f"- {info}" for info in guided_config.get('required_info', [])
+        )
+
     system_prompt = f"""You are creating a presentation draft based on a conversation.
 Use the information gathered to create a structured presentation outline.
 
 Template: {template.name if template else 'General'}
-{guided_config.get('required_info', ['Project details']) if guided_config else ''}
+{required_info_text}
 
-Output JSON in this exact format:
+IMPORTANT: Output ONLY valid JSON in this exact format, no other text:
 {{
   "title": "Presentation Title",
   "slides": [
@@ -273,24 +303,25 @@ Output JSON in this exact format:
     {{"type": "content", "heading": "Section", "bullets": ["Point 1", "Point 2", "Point 3"]}},
     {{"type": "summary", "heading": "Conclusion", "bullets": ["Key takeaway 1", "Key takeaway 2"]}}
   ]
-}}"""
+}}
+
+Slide types: "title" for the first slide, "content" for body slides, "summary" for the last slide.
+Generate 5-7 slides based on the conversation content."""
 
     prompt = f"""Based on this conversation, create a presentation draft:
 
 {history_text}
 
-Generate a professional presentation structure with 5-7 slides. Output valid JSON only."""
+Generate a professional {template.name if template else 'presentation'} structure. Output valid JSON only."""
 
     try:
         ollama_client = get_ollama_client()
         async with ollama_client:
-            # Use non-streaming for draft generation
-            presentation = await ollama_client.generate_presentation(
-                topic=f"Draft from conversation in session {session_id}",
-                language="en",
-                slides=5,
-                temperature=0.15,
-                template=session.template
+            # Use custom prompt generation with conversation context
+            presentation = await ollama_client.generate_from_prompt(
+                prompt=prompt,
+                system_prompt=system_prompt,
+                temperature=0.15
             )
 
         # Convert to draft format
