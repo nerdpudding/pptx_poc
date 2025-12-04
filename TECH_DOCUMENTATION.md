@@ -289,9 +289,46 @@ location /api/ {
 **Technology:** Python + python-pptx
 
 **Endpoints:**
-- `POST /generate` - Create PPTX from JSON
+- `POST /generate` - Create PPTX from JSON, returns file_id
 - `GET /download/{file_id}` - Download generated file
 - `GET /health` - Health check
+
+**Key Components:**
+
+| File | Purpose |
+|------|---------|
+| `generator.py` | FastAPI app with generate/download endpoints |
+| `slide_builder.py` | SlideBuilder class with python-pptx logic |
+| `templates/` | Optional PPTX template files |
+
+**SlideBuilder Features:**
+- Professional blue color scheme (configurable via `COLORS` dict)
+- 16:9 widescreen format (13.333" x 7.5")
+- Three slide types: title, content, summary
+- Dynamic slide count (works with 3-20 slides)
+- Bullet points with checkmarks for summary slides
+
+**Slide Types:**
+
+| Type | Description | Layout |
+|------|-------------|--------|
+| `title` | Main presentation title | Blue header bar (2.5"), centered title/subtitle |
+| `content` | Body content slides | Thin header (1.2"), title + bullet points |
+| `summary` | Conclusion slides | Lighter blue header, checkmark bullets |
+
+**Color Scheme:**
+```python
+COLORS = {
+    "primary": RGBColor(0x1E, 0x40, 0xAF),      # Deep blue - headers
+    "secondary": RGBColor(0x3B, 0x82, 0xF6),    # Light blue - summary
+    "text_dark": RGBColor(0x1F, 0x29, 0x37),    # Dark gray - body text
+    "text_light": RGBColor(0xFF, 0xFF, 0xFF),   # White - header text
+}
+```
+
+**File Storage:**
+- Generated files stored in `/app/output/` with UUID filenames
+- Files served via `FileResponse` with proper MIME type
 
 ---
 
@@ -570,12 +607,16 @@ pptx_poc/
 │       ├── models.py           # Pydantic models (Quick + Guided mode)
 │       ├── routes.py           # Quick mode API endpoints
 │       ├── chat_routes.py      # Guided mode chat API endpoints
-│       └── ollama_client.py    # Ollama HTTP client
+│       ├── ollama_client.py    # Ollama HTTP client
+│       └── pptx_client.py      # PPTX Generator HTTP client
 │
-├── pptx-generator/             # PPTX creation service (pending implementation)
+├── pptx-generator/             # PPTX creation service
 │   ├── Dockerfile
 │   ├── requirements.txt
-│   └── generator.py            # FastAPI app + PPTX logic
+│   ├── generator.py            # FastAPI app with generate/download endpoints
+│   ├── slide_builder.py        # SlideBuilder class with python-pptx
+│   ├── output/                 # Generated PPTX files (UUID.pptx)
+│   └── templates/              # Optional PPTX template files
 │
 ├── frontend/                   # Static frontend
 │   ├── Dockerfile
@@ -657,21 +698,30 @@ docker compose exec orchestrator curl http://ollama:11434/api/tags
 
 ---
 
-## Next Steps
+## Sprint 1 Complete
 
-The current implementation has completed:
-- ✅ Quick Mode (topic → draft)
-- ✅ Guided Mode (conversation → draft)
-- ✅ Draft preview
+All core functionality implemented:
+- ✅ Quick Mode (topic → AI draft → PPTX → download)
+- ✅ Guided Mode (conversation → AI draft → PPTX → download)
+- ✅ Draft preview with structured slides
+- ✅ PPTX file generation with professional styling
+- ✅ Download functionality via orchestrator proxy
 
-**Next priority: PPTX File Generation**
+**Architecture Flow:**
 
-To complete the workflow, the `pptx-generator` service needs to:
-1. Accept the draft JSON structure
-2. Use `python-pptx` to create actual PowerPoint files
-3. Return file for download
+```
+Quick Mode:
+User Input → Orchestrator → Ollama LLM → JSON Draft → PPTX Generator → Download
 
-See `pptx-generator/generator.py` for the placeholder implementation.
+Guided Mode:
+User ←→ AI Chat → [READY_FOR_DRAFT] → Draft Generation → PPTX Generator → Download
+```
+
+**Next Steps (Sprint 2):**
+- Custom PPTX templates (load styling from .pptx files)
+- Image integration
+- Theme selection
+- Custom branding options
 
 ---
 

@@ -43,6 +43,7 @@ __pycache__/
 
 # Generated Files
 *.pptx
+!concept_presentation_created_with_tool.pptx
 *.tmp
 *.bak
 *.backup
