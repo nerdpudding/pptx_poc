@@ -19,9 +19,9 @@
 | Project Setup | 9 | 9 | 100% |
 | Backend + Container | 22 | 16 | 73% |
 | PPTX Generator + Container | 17 | 10 | 59% |
-| Frontend + Container | 22 | 16 | 73% |
+| Frontend + Container | 22 | 17 | 77% |
 | Integration & Testing | 12 | 0 | 0% |
-| **Total** | **82** | **51** | **62%** |
+| **Total** | **82** | **52** | **63%** |
 
 ---
 
@@ -153,13 +153,13 @@
 ### Container Testing
 - [x] Test `docker compose up frontend`
 - [x] Verify nginx serves static files (health OK)
-- [ ] Verify API proxy works correctly
+- [x] Verify API proxy works correctly
 
 ---
 
 ## Phase 4: Integration & Testing
 
-> **All services running together: `docker-compose up`**
+> **All services running together: `docker compose up`**
 
 ### End-to-End Testing
 - [ ] Test complete workflow (input → generate → download)
@@ -187,10 +187,10 @@
 | 1 | Configure environment | `cp .env.example .env` |
 | 2 | Setup Ollama network | See [QUICK_INSTALL.md](../QUICK_INSTALL.md) |
 | 3 | Create project folders | `mkdir -p frontend/static orchestrator/api pptx-generator/templates` |
-| 4 | Backend code + Dockerfile | `docker-compose up orchestrator` |
-| 5 | PPTX Generator code + Dockerfile | `docker-compose up pptx-generator` |
-| 6 | Frontend code + Dockerfile | `docker-compose up frontend` |
-| 7 | Full integration | `docker-compose up` |
+| 4 | Backend code + Dockerfile | `docker compose up orchestrator` |
+| 5 | PPTX Generator code + Dockerfile | `docker compose up pptx-generator` |
+| 6 | Frontend code + Dockerfile | `docker compose up frontend` |
+| 7 | Full integration | `docker compose up` |
 
 ## Service Ports
 

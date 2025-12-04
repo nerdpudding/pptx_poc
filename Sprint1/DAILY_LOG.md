@@ -15,7 +15,7 @@
 ## Current Sprint Status
 
 **Sprint Start:** 2025-12-04
-**Overall Progress:** 62%
+**Overall Progress:** 63%
 
 ### Phase Progress
 | Phase | Status | Progress |
@@ -23,15 +23,15 @@
 | Project Setup | Completed | 100% |
 | Backend + Container | In Progress | 73% |
 | PPTX Generator + Container | In Progress | 59% |
-| Frontend + Container | In Progress | 73% |
+| Frontend + Container | In Progress | 77% |
 | Integration & Testing | Not Started | 0% |
 
 ### Progress Visualization
 
 ```mermaid
 pie title Sprint 1 Progress
-    "Completed" : 51
-    "Remaining" : 31
+    "Completed" : 52
+    "Remaining" : 30
 ```
 
 ---
@@ -162,8 +162,8 @@ pie title Sprint 1 Progress
 - [ ] Task 2 - [Time spent]
 
 #### Container Testing
-- [ ] `docker-compose build <service>` - Success/Fail
-- [ ] `docker-compose up <service>` - Success/Fail
+- [ ] `docker compose build <service>` - Success/Fail
+- [ ] `docker compose up <service>` - Success/Fail
 
 #### Blockers
 - None / [Description + Resolution plan]
@@ -205,7 +205,7 @@ pie title Sprint 1 Progress
 
 **Today:**
 - Working on X
-- Will test with `docker-compose up`
+- Will test with `docker compose up`
 
 **Blockers:**
 - None / [Description]
@@ -224,8 +224,8 @@ pie title Sprint 1 Progress
 ### Delivery Metrics
 | Metric | Target | Current |
 |--------|--------|---------|
-| Tasks completed | 82 | 51 |
-| Sprint completion | 100% | 62% |
+| Tasks completed | 82 | 52 |
+| Sprint completion | 100% | 63% |
 
 ---
 
@@ -233,31 +233,31 @@ pie title Sprint 1 Progress
 
 ```bash
 # Build all containers
-docker-compose build
+docker compose build
 
 # Build specific service
-docker-compose build orchestrator
+docker compose build orchestrator
 
 # Run specific service
-docker-compose up orchestrator
+docker compose up orchestrator
 
 # Run all services
-docker-compose up
+docker compose up
 
 # Run in background
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Check status
-docker-compose ps
+docker compose ps
 
 # Stop all
-docker-compose down
+docker compose down
 
 # Clean up (including volumes)
-docker-compose down -v
+docker compose down -v
 
 # Test endpoints
 curl http://localhost:5000/health
@@ -287,9 +287,9 @@ curl -X POST http://localhost:5000/api/v1/generate \
 **Traffic Light:** Green
 
 ```
-Overall:   [======    ] 62%
+Overall:   [======    ] 63%
 Setup:     [==========] 100%
 Backend:   [=======   ] 73%
 PPTX:      [======    ] 59%
-Frontend:  [=======   ] 73%
+Frontend:  [========  ] 77%
 ```
