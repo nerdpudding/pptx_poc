@@ -689,6 +689,7 @@
         }
         if (elements.createDraftBtn) {
             elements.createDraftBtn.disabled = true;
+            elements.createDraftBtn.classList.remove('ready-highlight');
         }
         if (elements.generateFromDraftBtn) {
             elements.generateFromDraftBtn.disabled = true;
@@ -883,8 +884,9 @@
                                     state.isReadyForDraft = true;
                                     if (elements.createDraftBtn) {
                                         elements.createDraftBtn.disabled = false;
+                                        elements.createDraftBtn.classList.add('ready-highlight');
                                     }
-                                    updateStatus('Ready to create draft!', 'success');
+                                    updateStatus('Ready to create draft! Click the highlighted button below.', 'success');
                                 }
                             }
                         } catch (e) {
@@ -961,7 +963,10 @@
         if (!state.sessionId) return;
 
         updateStatus('Creating draft...', 'info');
-        if (elements.createDraftBtn) elements.createDraftBtn.disabled = true;
+        if (elements.createDraftBtn) {
+            elements.createDraftBtn.disabled = true;
+            elements.createDraftBtn.classList.remove('ready-highlight');
+        }
 
         try {
             const response = await fetch(
