@@ -275,90 +275,40 @@ All services expose: `GET /health` returning `{"status": "ok"}`
 - **Model Characteristics:** State-of-the-art as of December 2025, optimized for instruction following and content generation
 - **Prompt Engineering:** Focus on clear structure generation (title, main points, summary)
 
-### Technology Research Task (Pre-Implementation)
+### Technology Research (✅ COMPLETED)
 
-**Objective:** Research and evaluate existing Docker-based solutions for frontend and orchestrator components before making build vs. buy decisions.
+**Status:** Research completed - see **[TECHNOLOGY_RECOMMENDATIONS.md](TECHNOLOGY_RECOMMENDATIONS.md)** for full details.
 
-#### Research Prompt for AI Assistant
+#### Selected Technology Stack
 
-**Task:** Evaluate existing Docker-based microservices solutions for our PowerPoint Generation POC project.
+| Component | Technology | Rationale |
+|-----------|------------|-----------|
+| **Frontend** | nginx:alpine + vanilla HTML/JS | KISS approach, ~40MB image, no build step |
+| **Orchestrator** | FastAPI (Python) | Async support, excellent Ollama integration, same language as PPTX generator |
+| **PPTX Generator** | python-pptx v1.0.0 | Stable, well-maintained, no PowerPoint installation required |
+| **AI Backend** | ollama/ollama official image | Standard, well-documented |
+| **LangChain** | Skipped for MVP | Overkill for single LLM call, consider for Sprint 2+ |
 
-**Requirements:**
-1. **Frontend Component:**
-   - Simple web interface for user input
-   - Ability to display presentation previews
-   - Download functionality for PPTX files
-   - Docker container ready
-   - Minimal setup complexity
+#### Key Decisions Made
 
-2. **Orchestrator Component:**
-   - API endpoint for processing user requests
-   - Integration with Ollama backend
-   - Request routing and response processing
-   - Error handling capabilities
-   - Docker container ready
-   - Potential integration with frameworks like LangChain or similar orchestration tools
-
-3. **Technical Constraints:**
-   - Must work with ministral-3-14b-it-2512 model
-   - Docker microservices architecture
-   - Simple and maintainable codebase
-   - Open source preferred
-   - Active community support
-
-**Evaluation Criteria:**
-- Ease of Docker implementation
-- Compatibility with our architecture
-- Performance characteristics
-- Community adoption and support
-- Learning curve for our team
-- Long-term maintainability
-
-**Potential Solutions to Research:**
-- **Frontend:** Simple Nginx-based solutions, lightweight Node.js frameworks, or existing web UI templates
-- **Orchestrator:** FastAPI, Express.js, or specialized AI orchestration frameworks
-- **Integration:** LangChain, LlamaIndex, or custom solutions
-- **Existing Projects:** Any open-source projects that combine web UI with LLM backend
-
-**Deliverable:** Recommendation report with pros/cons of top 3 options for each component, including implementation complexity estimates.
-
-#### Research Questions to Answer
-
-1. What existing Docker-based frontend solutions could handle our simple UI requirements?
-2. Are there lightweight orchestrator services that integrate well with Ollama?
-3. Should we consider frameworks like LangChain for the orchestrator, or build custom?
-4. What are the trade-offs between using existing solutions vs. building our own?
-5. Are there any existing projects that combine similar functionality we could learn from?
-
-#### Implementation Decision Tree
-
-```mermaid
-graph TD
-    A[Technology Research] --> B{Existing Solutions Found?}
-    B -->|Yes| C[Evaluate Solutions]
-    B -->|No| D[Build Custom Components]
-    C --> E{Meet Requirements?}
-    E -->|Yes| F[Implement Solution]
-    E -->|No| D[Build Custom Components]
-    F --> G[Document Integration]
-    D --> H[Design Custom Architecture]
-    H --> I[Implement Components]
-    I --> G[Document Integration]
-```
+1. **Frontend:** No framework needed - simple HTML form with vanilla JavaScript
+2. **Backend:** Python-only stack (FastAPI + python-pptx) simplifies development
+3. **LangChain:** Deferred - direct HTTP calls to Ollama are sufficient for MVP
+4. **Container strategy:** Option to combine orchestrator + pptx-generator for Sprint 1
 
 ## Updated Implementation Roadmap
 
-### Phase 0: Technology Research (New - High Priority)
-1. **Research existing solutions** - 2-3 days
-2. **Evaluate options** - 1 day
-3. **Make build vs. buy decisions** - 1 day
-4. **Update architecture based on findings** - 1 day
+### Phase 0: Technology Research (✅ COMPLETED)
+- ✅ Research existing solutions
+- ✅ Evaluate options
+- ✅ Make build vs. buy decisions
+- ✅ Document findings in [TECHNOLOGY_RECOMMENDATIONS.md](TECHNOLOGY_RECOMMENDATIONS.md)
 
-### Phase 1: Core Components (Updated)
-1. **Frontend Development** - Implementation based on research findings
-2. **Orchestrator Service** - Implementation based on research findings
+### Phase 1: Core Components
+1. **Frontend Development** - nginx:alpine + vanilla HTML/CSS/JS
+2. **Orchestrator Service** - FastAPI with async Ollama integration
 3. **Ollama Integration** - Using ministral-3-14b-it-2512
-4. **PPTX Generator** - Basic 3-slide template implementation
+4. **PPTX Generator** - python-pptx with basic 3-slide template
 5. **Docker Implementation** - Containerize all components
 
 ### Phase 2: Integration & Testing
@@ -367,8 +317,8 @@ graph TD
 3. **Performance optimization**
 4. **User acceptance testing**
 
-### Expected Deliverables (Updated)
-- ✅ Technology research report with recommendations
+### Expected Deliverables
+- ✅ Technology research report with recommendations - **COMPLETED**: [TECHNOLOGY_RECOMMENDATIONS.md](TECHNOLOGY_RECOMMENDATIONS.md)
 - ✅ Working web interface for presentation generation
 - ✅ Functional API communication with Ollama backend
 - ✅ Professional 3-slide PowerPoint output

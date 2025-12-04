@@ -23,6 +23,13 @@ This repository contains the complete project plan and architecture for the Powe
   - Technical specifications and execution roadmap
   - Risk assessment and future sprint ideas
 
+### 🔬 Technology Research
+- **[TECHNOLOGY_RECOMMENDATIONS.md](TECHNOLOGY_RECOMMENDATIONS.md)** - Research findings and decisions:
+  - Evaluated frameworks and libraries for each component
+  - Selected technology stack with rationale
+  - Example Dockerfiles and code snippets
+  - Suggested project structure
+
 ### 🎨 Architecture Visualization
 - **[architecture_diagrams.md](architecture_diagrams.md)** - Dark theme optimized diagrams with:
   - High-contrast colors for better readability
@@ -45,12 +52,14 @@ pptx_poc/
 └── (future implementation files)
 ```
 
-### Key Technologies
+### Key Technologies (Research Completed ✅)
 - **AI Backend:** Ollama with **ministral-3-14b-it-2512** (Q8 quantized)
 - **Containerization:** Docker with microservices architecture
-- **Frontend:** Simple web interface (HTML/CSS/JS)
-- **Backend:** Node.js/Python orchestrator service
-- **PPTX Generation:** Python-pptx library
+- **Frontend:** nginx:alpine serving vanilla HTML/CSS/JS
+- **Orchestrator:** FastAPI (Python) with async Ollama integration
+- **PPTX Generation:** python-pptx v1.0.0
+
+> See [TECHNOLOGY_RECOMMENDATIONS.md](TECHNOLOGY_RECOMMENDATIONS.md) for full rationale and examples.
 
 ## 🎯 Sprint 0: Project Initiation (✅ COMPLETE)
 
@@ -62,19 +71,24 @@ pptx_poc/
 5. **Conceptual Design** - System architecture overview
 6. **Technical Design** - Docker microservices blueprint
 7. **Execution Plan** - Step-by-step implementation roadmap
+8. **Technology Research** - Evaluated and selected frameworks/libraries
 
 ### Key Decisions Made
 - **AI Model:** ministral-3-14b-it-2512 (current state-of-the-art as of Dec 2025)
-- **Architecture:** Docker microservices with 4 main containers
+- **Architecture:** Docker microservices with 3-4 containers
+- **Frontend:** nginx:alpine + vanilla HTML/JS (no framework)
+- **Backend:** FastAPI (Python) - async, same language as PPTX generator
+- **PPTX:** python-pptx v1.0.0 - stable, well-maintained
+- **LangChain:** Skipped for MVP - direct Ollama HTTP calls sufficient
 - **Scope:** 3-slide presentations for MVP
 - **Approach:** KISS - minimal complexity, maximum validation
 
 ## 🏗️ Sprint 1: Implementation Plan
 
 ### Phase 1: Core Components (High Priority)
-1. **Frontend Development** - Simple web interface for user input
-2. **Orchestrator Service** - API endpoint and Ollama integration
-3. **PPTX Generator** - Basic 3-slide template implementation
+1. **Frontend Development** - nginx:alpine + vanilla HTML/CSS/JS
+2. **Orchestrator Service** - FastAPI with async Ollama integration
+3. **PPTX Generator** - python-pptx with basic 3-slide template
 4. **Docker Implementation** - Containerize all components
 
 ### Phase 2: Integration & Testing
@@ -115,10 +129,10 @@ graph LR
 ## 🤝 Getting Involved
 
 ### How to Contribute
-1. **Review the [Project Plan](PROJECT_PLAN.md)** - Understand the complete vision including new technology research section
-2. **Examine the [Architecture Diagrams](architecture_diagrams_fixed.md)** - Visualize the system (dark theme optimized)
-3. **Complete Technology Research** - Evaluate existing Docker solutions before implementation
-4. **Start with Sprint 1 tasks** - Focus on core implementation based on research findings
+1. **Review the [Project Plan](PROJECT_PLAN.md)** - Understand the complete vision
+2. **Review [Technology Recommendations](TECHNOLOGY_RECOMMENDATIONS.md)** - Selected stack and rationale
+3. **Examine the [Architecture Diagrams](architecture_diagrams.md)** - Visualize the system (dark theme optimized)
+4. **Start with Sprint 1 tasks** - Focus on core implementation
 5. **Follow Docker best practices** - Maintain containerized approach
 
 ### Development Setup
