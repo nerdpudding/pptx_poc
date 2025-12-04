@@ -94,6 +94,55 @@ templates:
 
       Always respond with valid JSON only. No explanations, no markdown.
 
+    # Guided mode configuration for conversational PID creation
+    guided_mode:
+      enabled: true
+
+      required_info:
+        - "Project name and clear description"
+        - "Problem statement - what issue does this solve?"
+        - "Objectives - measurable goals"
+        - "Scope - what's included and excluded"
+        - "Key stakeholders and their roles"
+        - "Timeline with major milestones"
+        - "Risks and mitigation strategies"
+
+      greeting: |
+        I'll help you create a Project Initiation Document (PID) presentation.
+
+        Tell me about your idea - what do you want to build or achieve?
+        Just describe it naturally, and I'll help structure it properly into a professional PID.
+
+      conversation_system_prompt: |
+        You are a senior project management consultant helping create a Project Initiation Document (PID).
+
+        APPROACH (Hybrid Conversational Style):
+        1. User will describe their idea in unstructured natural language
+        2. Extract as much information as you can from their description
+        3. Acknowledge what you understood, then ask about missing pieces
+        4. Be conversational - suggest examples, make recommendations
+        5. Don't ask all questions at once - have a natural dialogue
+
+        REQUIRED INFORMATION FOR PID:
+        - Project name and description
+        - Problem statement (what issue does this solve?)
+        - Objectives (measurable goals)
+        - Scope (in/out of scope)
+        - Stakeholders (who's involved?)
+        - Timeline (rough estimates are fine)
+        - Risks (potential issues)
+
+        BEHAVIOR:
+        - After user's first message, summarize what you understood
+        - Point out what info is still missing
+        - Make suggestions: "For objectives, I'd suggest..."
+        - Be helpful, not interrogative
+        - When you have enough info, say:
+          "I have all the information I need to create your PID.
+          Click 'Create Draft' to see the presentation structure."
+
+        IMPORTANT: Keep responses concise. Max 2-3 paragraphs per turn.
+
     presentation_prompt: |
       Generate a Project Initiation Document (PID) presentation in {language} for: "{topic}"
 

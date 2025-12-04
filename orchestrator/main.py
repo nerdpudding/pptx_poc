@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 
 from api.routes import router
+from api.chat_routes import router as chat_router
 from config import get_settings
 
 # Configure logging
@@ -119,6 +120,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 # Include API routes
 app.include_router(router)
+app.include_router(chat_router)
 
 
 # =============================================================================

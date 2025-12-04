@@ -11,12 +11,18 @@
     <div class="container">
         <h1>PPTX Generation POC</h1>
 
+        <!-- Mode Toggle -->
+        <div class="mode-toggle">
+            <button type="button" id="quickModeBtn" class="mode-btn active">Quick Mode</button>
+            <button type="button" id="guidedModeBtn" class="mode-btn">Guided Mode</button>
+        </div>
+
         <!-- Status Message -->
         <div id="status" class="status status-info">
             Loading configuration...
         </div>
 
-        <!-- Generation Form -->
+        <!-- Quick Mode: Generation Form -->
         <form id="generationForm">
             <!-- Template Selection -->
             <div class="form-group">
@@ -101,6 +107,56 @@
         <div id="previewSection" class="preview-section hidden">
             <h3>Slide Preview</h3>
             <div id="previewContent"></div>
+        </div>
+
+        <!-- Guided Mode: Chat Container (hidden by default) -->
+        <div id="chatContainer" class="chat-container hidden">
+            <!-- Template Selection for Guided Mode -->
+            <div class="form-group">
+                <label for="chatTemplate">Presentation Type</label>
+                <select id="chatTemplate">
+                    <option value="">Loading templates...</option>
+                </select>
+                <small id="chatTemplateDescription" class="setting-hint"></small>
+            </div>
+
+            <!-- Start Session Button -->
+            <div id="chatStartSection" class="text-center mb-md">
+                <button type="button" id="startSessionBtn" class="button button-primary">
+                    Start Guided Session
+                </button>
+            </div>
+
+            <!-- Chat Messages -->
+            <div id="chatMessages" class="chat-messages hidden"></div>
+
+            <!-- Chat Input -->
+            <div id="chatInputArea" class="chat-input-area hidden">
+                <textarea
+                    id="chatInput"
+                    placeholder="Type your message..."
+                    rows="2"
+                ></textarea>
+                <button type="button" id="sendBtn" class="button button-primary">
+                    Send
+                </button>
+            </div>
+
+            <!-- Chat Actions -->
+            <div id="chatActions" class="chat-actions hidden">
+                <button type="button" id="createDraftBtn" class="button button-secondary" disabled>
+                    Create Draft
+                </button>
+                <button type="button" id="generateFromDraftBtn" class="button button-success" disabled>
+                    Generate Presentation
+                </button>
+            </div>
+
+            <!-- Draft Preview (in guided mode) -->
+            <div id="draftPreviewSection" class="preview-section hidden">
+                <h3>Draft Preview</h3>
+                <div id="draftPreviewContent"></div>
+            </div>
         </div>
     </div>
 

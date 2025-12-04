@@ -227,3 +227,71 @@ class DetailedHealthResponse(BaseModel):
     service: str
     version: str
     dependencies: list[ServiceStatus]
+
+
+# =============================================================================
+# Chat/Guided Mode Models
+# =============================================================================
+
+class ChatStartRequest(BaseModel):
+    """Request to start a new guided chat session"""
+    template: str = Field(
+        ...,
+        min_length=1,
+        max_length=50,
+        description="Template key (e.g., 'project_init')"
+    )
+
+
+class ChatStartResponse(BaseModel):
+    """Response when starting a new chat session"""
+    session_id: str = Field(..., description="Unique session identifier")
+    message: str = Field(..., description="AI greeting message")
+
+
+class ChatMessageRequest(BaseModel):
+    """Request to send a message in a chat session"""
+    message: str = Field(
+        ...,
+        min_length=1,
+        max_length=5000,
+        description="User's message"
+    )
+
+
+class ChatMessageResponse(BaseModel):
+    """Non-streaming response for chat message (used for errors)"""
+    session_id: str
+    message: str
+    is_ready_for_draft: bool = False
+
+
+class ChatDraftSlide(BaseModel):
+    """A slide in the draft preview"""
+    type: str = Field(..., description="Slide type (title, content, summary)")
+    heading: str = Field(..., description="Slide heading")
+    subheading: Optional[str] = Field(None, description="Slide subheading")
+    bullets: Optional[list[str]] = Field(None, description="Bullet points")
+
+
+class ChatDraft(BaseModel):
+    """Draft presentation structure from conversation"""
+    title: str = Field(..., description="Presentation title")
+    slides: list[ChatDraftSlide] = Field(..., description="Draft slides")
+
+
+class ChatDraftResponse(BaseModel):
+    """Response when generating draft from conversation"""
+    session_id: str
+    draft: ChatDraft
+
+
+class ChatSessionInfo(BaseModel):
+    """Information about a chat session"""
+    session_id: str
+    template: str
+    message_count: int
+    is_ready_for_draft: bool
+    has_draft: bool
+    created_at: str
+    last_activity: str

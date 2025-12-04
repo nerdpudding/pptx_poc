@@ -24,6 +24,7 @@ class TemplateInfo:
         self.name = data.get("name", key)
         self.description = data.get("description", "")
         self.system_prompt = data.get("system_prompt", "").strip()
+        self.guided_mode = data.get("guided_mode", {})
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization"""
@@ -31,7 +32,8 @@ class TemplateInfo:
             "key": self.key,
             "name": self.name,
             "description": self.description,
-            "system_prompt": self.system_prompt
+            "system_prompt": self.system_prompt,
+            "guided_mode_enabled": self.guided_mode.get("enabled", False)
         }
 
 
@@ -133,6 +135,50 @@ class PromptLoader:
             return template.system_prompt
         # Fallback
         return "You are a professional presentation designer. Return valid JSON only."
+
+    # =========================================================================
+    # Guided Mode
+    # =========================================================================
+
+    def get_guided_mode_config(self, template_key: str) -> Optional[Dict[str, Any]]:
+        """
+        Get guided mode configuration for a template.
+
+        Args:
+            template_key: Template identifier
+
+        Returns:
+            Guided mode config dict or None if not configured
+        """
+        templates = self._data.get("templates", {})
+        template_data = templates.get(template_key, {})
+        guided_mode = template_data.get("guided_mode", {})
+
+        if not guided_mode.get("enabled", False):
+            return None
+
+        return {
+            "enabled": True,
+            "required_info": guided_mode.get("required_info", []),
+            "greeting": guided_mode.get("greeting", "").strip(),
+            "conversation_system_prompt": guided_mode.get("conversation_system_prompt", "").strip()
+        }
+
+    def get_guided_mode_templates(self) -> List[Dict[str, Any]]:
+        """
+        Get list of templates that support guided mode.
+
+        Returns:
+            List of template info for guided mode enabled templates
+        """
+        templates = self._data.get("templates", {})
+        result = []
+        for key, data in templates.items():
+            guided_mode = data.get("guided_mode", {})
+            if guided_mode.get("enabled", False):
+                info = TemplateInfo(key, data)
+                result.append(info.to_dict())
+        return result
 
     # =========================================================================
     # Prompt Generation

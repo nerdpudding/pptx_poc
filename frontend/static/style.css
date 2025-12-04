@@ -470,6 +470,156 @@ textarea::placeholder {
 
 
 /* =============================================================================
+   Mode Toggle
+   ============================================================================= */
+
+.mode-toggle {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-sm);
+    background-color: var(--color-background);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.mode-btn {
+    flex: 1;
+    max-width: 200px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: var(--radius-sm);
+    background-color: transparent;
+    color: var(--color-text-muted);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.mode-btn:hover {
+    color: var(--color-text);
+    background-color: var(--color-surface);
+}
+
+.mode-btn.active {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+
+/* =============================================================================
+   Chat Container
+   ============================================================================= */
+
+.chat-container {
+    margin-top: var(--spacing-lg);
+}
+
+.chat-messages {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.chat-message {
+    display: flex;
+    margin-bottom: var(--spacing-md);
+}
+
+.chat-message:last-child {
+    margin-bottom: 0;
+}
+
+.chat-message.user {
+    justify-content: flex-end;
+}
+
+.chat-message.assistant {
+    justify-content: flex-start;
+}
+
+.chat-bubble {
+    max-width: 80%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.chat-message.user .chat-bubble {
+    background-color: var(--color-primary);
+    color: white;
+    border-bottom-right-radius: var(--radius-sm);
+}
+
+.chat-message.assistant .chat-bubble {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-bottom-left-radius: var(--radius-sm);
+}
+
+.chat-bubble.streaming::after {
+    content: "▋";
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+
+/* =============================================================================
+   Chat Input Area
+   ============================================================================= */
+
+.chat-input-area {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.chat-input-area textarea {
+    flex: 1;
+    resize: none;
+    min-height: 60px;
+}
+
+.chat-input-area .button {
+    align-self: flex-end;
+    height: fit-content;
+}
+
+
+/* =============================================================================
+   Chat Actions
+   ============================================================================= */
+
+.chat-actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background-color: var(--color-background);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+}
+
+.chat-actions .button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+/* =============================================================================
    Utility Classes
    ============================================================================= */
 
