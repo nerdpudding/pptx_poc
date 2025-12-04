@@ -289,24 +289,33 @@ async def generate_draft(
             f"- {info}" for info in guided_config.get('required_info', [])
         )
 
-    system_prompt = f"""You are creating a presentation draft based on a conversation.
+    # Get draft system prompt from config or use default
+    default_draft_prompt = """You are creating a presentation draft based on a conversation.
 Use the information gathered to create a structured presentation outline.
 
-Template: {template.name if template else 'General'}
-{required_info_text}
-
 IMPORTANT: Output ONLY valid JSON in this exact format, no other text:
-{{
+{
   "title": "Presentation Title",
   "slides": [
-    {{"type": "title", "heading": "Main Title", "subheading": "Subtitle"}},
-    {{"type": "content", "heading": "Section", "bullets": ["Point 1", "Point 2", "Point 3"]}},
-    {{"type": "summary", "heading": "Conclusion", "bullets": ["Key takeaway 1", "Key takeaway 2"]}}
+    {"type": "title", "heading": "Main Title", "subheading": "Subtitle"},
+    {"type": "content", "heading": "Section", "bullets": ["Point 1", "Point 2", "Point 3"]},
+    {"type": "summary", "heading": "Conclusion", "bullets": ["Key takeaway 1", "Key takeaway 2"]}
   ]
-}}
+}
 
-Slide types: "title" for the first slide, "content" for body slides, "summary" for the last slide.
-Generate 5-7 slides based on the conversation content."""
+STRICT RULES:
+- Slide types: "title" for the first slide, "content" for body slides, "summary" for the last slide.
+- Generate 5-7 slides based on the conversation content.
+- Each slide MUST have 3-5 bullet points maximum. Never more than 5 bullets per slide.
+- Keep bullet points concise (max 15 words each)."""
+
+    system_prompt = guided_config.get("draft_system_prompt", default_draft_prompt)
+
+    # Add template-specific context
+    system_prompt = f"""{system_prompt}
+
+Template: {template.name if template else 'General'}
+{required_info_text}"""
 
     prompt = f"""Based on this conversation, create a presentation draft:
 

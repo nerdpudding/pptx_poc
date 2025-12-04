@@ -63,7 +63,7 @@ class SlideContent(BaseModel):
     type: SlideType
     heading: str = Field(..., min_length=1, max_length=500)
     subheading: Optional[str] = Field(default=None, max_length=500)
-    bullets: Optional[list[str]] = Field(default=None, max_items=10)
+    bullets: Optional[list[str]] = Field(default=None, max_items=20)
 
 class PresentationContent(BaseModel):
     """Complete presentation structure"""

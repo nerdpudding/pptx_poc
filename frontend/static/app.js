@@ -66,7 +66,8 @@
         createDraftBtn: null,
         generateFromDraftBtn: null,
         draftPreviewSection: null,
-        draftPreviewContent: null
+        draftPreviewContent: null,
+        newSessionBtn: null
     };
 
 
@@ -168,6 +169,7 @@
         elements.generateFromDraftBtn = document.getElementById('generateFromDraftBtn');
         elements.draftPreviewSection = document.getElementById('draftPreviewSection');
         elements.draftPreviewContent = document.getElementById('draftPreviewContent');
+        elements.newSessionBtn = document.getElementById('newSessionBtn');
 
         // Mode toggle listeners
         if (elements.quickModeBtn) {
@@ -200,6 +202,9 @@
         }
         if (elements.chatTemplate) {
             elements.chatTemplate.addEventListener('change', handleChatTemplateChange);
+        }
+        if (elements.newSessionBtn) {
+            elements.newSessionBtn.addEventListener('click', startNewSession);
         }
 
         // Load configuration from API
@@ -700,6 +705,29 @@
         if (elements.chatInput) {
             elements.chatInput.value = '';
         }
+    }
+
+    /**
+     * Start a new session (reset and show template selection)
+     */
+    function startNewSession() {
+        // Delete current session on server if exists
+        if (state.sessionId) {
+            fetch(`${CONFIG.ENDPOINTS.CHAT_MESSAGE}/${state.sessionId}`, {
+                method: 'DELETE'
+            }).catch(() => {}); // Ignore errors
+        }
+
+        // Reset chat state and UI
+        resetChatState();
+
+        // Hide download section if visible
+        if (elements.downloadSection) {
+            elements.downloadSection.classList.remove('hidden');
+            elements.downloadSection.classList.add('hidden');
+        }
+
+        updateStatus('Select a template and start a new guided session', 'info');
     }
 
 

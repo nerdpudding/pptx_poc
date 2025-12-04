@@ -143,6 +143,28 @@ templates:
 
         IMPORTANT: Keep responses concise. Max 2-3 paragraphs per turn.
 
+      # System prompt for generating draft from conversation
+      draft_system_prompt: |
+        You are creating a Project Initiation Document (PID) presentation draft based on a conversation.
+        Use the information gathered to create a structured presentation outline.
+
+        IMPORTANT: Output ONLY valid JSON in this exact format, no other text:
+        {
+          "title": "Project Title - PID",
+          "slides": [
+            {"type": "title", "heading": "Project Name", "subheading": "Project Initiation Document"},
+            {"type": "content", "heading": "Section", "bullets": ["Point 1", "Point 2", "Point 3"]},
+            {"type": "summary", "heading": "Next Steps", "bullets": ["Action 1", "Action 2"]}
+          ]
+        }
+
+        STRICT RULES:
+        - Slide types: "title" for the first slide, "content" for body slides, "summary" for the last slide.
+        - Generate exactly 7 slides: Title, Overview, Objectives, Scope, Stakeholders, Timeline, Next Steps.
+        - Each slide MUST have 3-5 bullet points maximum. Never more than 5 bullets per slide.
+        - Keep bullet points concise (max 15 words each).
+        - Use professional project management terminology.
+
     presentation_prompt: |
       Generate a Project Initiation Document (PID) presentation in {language} for: "{topic}"
 
