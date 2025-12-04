@@ -33,7 +33,13 @@
         downloadSection: null,
         downloadButton: null,
         previewSection: null,
-        previewContent: null
+        previewContent: null,
+        // Settings elements
+        slidesInput: null,
+        slidesValue: null,
+        temperatureInput: null,
+        temperatureValue: null,
+        numCtxSelect: null
     };
 
 
@@ -64,13 +70,58 @@
         elements.previewSection = document.getElementById('previewSection');
         elements.previewContent = document.getElementById('previewContent');
 
+        // Settings elements
+        elements.slidesInput = document.getElementById('slides');
+        elements.slidesValue = document.getElementById('slidesValue');
+        elements.temperatureInput = document.getElementById('temperature');
+        elements.temperatureValue = document.getElementById('temperatureValue');
+        elements.numCtxSelect = document.getElementById('numCtx');
+
         // Bind event listeners
         if (elements.form) {
             elements.form.addEventListener('submit', handleFormSubmit);
         }
 
+        // Bind settings change listeners
+        if (elements.slidesInput) {
+            elements.slidesInput.addEventListener('input', updateSlidesDisplay);
+        }
+        if (elements.temperatureInput) {
+            elements.temperatureInput.addEventListener('input', updateTemperatureDisplay);
+        }
+
         // Check API health on load
         checkApiHealth();
+    }
+
+    /**
+     * Update slides display value
+     */
+    function updateSlidesDisplay() {
+        if (elements.slidesValue && elements.slidesInput) {
+            elements.slidesValue.textContent = elements.slidesInput.value;
+        }
+    }
+
+    /**
+     * Update temperature display value
+     */
+    function updateTemperatureDisplay() {
+        if (elements.temperatureValue && elements.temperatureInput) {
+            elements.temperatureValue.textContent = parseFloat(elements.temperatureInput.value).toFixed(2);
+        }
+    }
+
+    /**
+     * Get current settings values
+     * @returns {Object} Settings object with temperature, num_ctx, slides
+     */
+    function getSettingsValues() {
+        return {
+            temperature: elements.temperatureInput ? parseFloat(elements.temperatureInput.value) : 0.15,
+            num_ctx: elements.numCtxSelect ? parseInt(elements.numCtxSelect.value, 10) : 122880,
+            slides: elements.slidesInput ? parseInt(elements.slidesInput.value, 10) : 5
+        };
     }
 
 
@@ -101,6 +152,8 @@
      * @returns {Promise<Object>} - The API response
      */
     async function generatePresentation(topic) {
+        const settings = getSettingsValues();
+
         const response = await fetch(CONFIG.ENDPOINTS.GENERATE, {
             method: 'POST',
             headers: {
@@ -108,7 +161,10 @@
             },
             body: JSON.stringify({
                 topic: topic,
-                language: 'en'
+                language: 'en',
+                temperature: settings.temperature,
+                num_ctx: settings.num_ctx,
+                slides: settings.slides
             })
         });
 

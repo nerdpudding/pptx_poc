@@ -17,8 +17,10 @@ class Settings(BaseSettings):
 
     # Ollama configuration
     ollama_host: str = "http://ollama:11434"
-    ollama_model: str = "ministral-3:14b-instruct-2512-q8_0"
-    ollama_timeout: int = 60  # seconds
+    ollama_model: str = "ministral-3-14b-it-2512-q8-120k:latest"
+    ollama_timeout: int = 120  # seconds (increased for large model)
+    ollama_temperature: float = 0.15  # low for consistent JSON output
+    ollama_num_ctx: int = 122880  # context window (your GPU limit)
 
     # PPTX Generator service
     pptx_generator_url: str = "http://pptx-generator:8001"

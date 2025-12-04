@@ -46,6 +46,26 @@ class GenerateRequest(BaseModel):
         examples=["en", "nl", "de"]
     )
 
+    # Ollama parameters (optional, uses server defaults if not provided)
+    temperature: Optional[float] = Field(
+        default=None,
+        ge=0.0,
+        le=2.0,
+        description="Sampling temperature (0.0-2.0). Lower = more consistent, higher = more creative"
+    )
+    num_ctx: Optional[int] = Field(
+        default=None,
+        ge=4096,
+        le=131072,
+        description="Context window size. Larger allows longer prompts but uses more memory"
+    )
+    slides: Optional[int] = Field(
+        default=None,
+        ge=3,
+        le=10,
+        description="Number of slides to generate (3-10)"
+    )
+
 
 # =============================================================================
 # Response Models

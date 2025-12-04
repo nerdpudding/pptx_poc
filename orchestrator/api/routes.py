@@ -94,7 +94,16 @@ async def generate_presentation(
     2. Send content to pptx-generator
     3. Return file ID and download URL
     """
-    logger.info(f"Generate request received: topic='{request.topic}', language='{request.language}'")
+    # Use provided values or defaults
+    effective_slides = request.slides if request.slides is not None else settings.default_slides
+    effective_temp = request.temperature if request.temperature is not None else settings.ollama_temperature
+    effective_ctx = request.num_ctx if request.num_ctx is not None else settings.ollama_num_ctx
+
+    logger.info(
+        f"Generate request received: topic='{request.topic}', "
+        f"language='{request.language}', slides={effective_slides}, "
+        f"temperature={effective_temp}, num_ctx={effective_ctx}"
+    )
 
     try:
         # Generate unique file ID

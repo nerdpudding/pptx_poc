@@ -17,11 +17,11 @@
 | Category | Total | Completed | Percentage |
 |----------|-------|-----------|------------|
 | Project Setup | 9 | 9 | 100% |
-| Backend + Container | 22 | 16 | 73% |
+| Backend + Container | 22 | 22 | 100% |
 | PPTX Generator + Container | 17 | 10 | 59% |
 | Frontend + Container | 22 | 17 | 77% |
 | Integration & Testing | 12 | 0 | 0% |
-| **Total** | **82** | **52** | **63%** |
+| **Total** | **82** | **58** | **71%** |
 
 ---
 
@@ -65,18 +65,18 @@
 - [x] Add `GET /health` endpoint
 
 ### Ollama Integration
-- [ ] Create `orchestrator/api/ollama_client.py`
-- [ ] Implement async HTTP client for Ollama
-- [ ] Build prompt template for presentation generation
-- [ ] Add response parsing (extract JSON)
-- [ ] Implement timeout handling
-- [ ] Add retry logic for transient failures
+- [x] Create `orchestrator/api/ollama_client.py`
+- [x] Implement async HTTP client for Ollama
+- [x] Build prompt template for presentation generation
+- [x] Add response parsing (extract JSON)
+- [x] Implement timeout handling
+- [x] Add retry logic for transient failures
 
 ### Container Testing
 - [x] Test `docker compose up orchestrator`
 - [x] Test health endpoint with curl
 - [x] Test generate endpoint with curl (placeholder response OK)
-- [ ] Verify Ollama communication works in container
+- [ ] Verify Ollama communication works in container (pending test)
 
 ---
 
