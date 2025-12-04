@@ -4,9 +4,10 @@ API endpoint handlers with proper validation and error handling
 """
 
 import uuid
+import json
 import logging
 from fastapi import APIRouter, HTTPException, Depends
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from .models import (
     GenerateRequest,
@@ -17,7 +18,9 @@ from .models import (
     PresentationPreview,
     SlidePreview,
     SlideType,
+    StreamRequest,
 )
+from .ollama_client import OllamaClient, get_ollama_client
 from config import Settings, get_settings
 
 # Configure logging
@@ -88,11 +91,8 @@ async def generate_presentation(
     """
     Generate a PowerPoint presentation from the given topic.
 
-    This is currently a placeholder that returns mock data.
-    Full implementation will:
-    1. Call Ollama to generate content
-    2. Send content to pptx-generator
-    3. Return file ID and download URL
+    1. Calls Ollama to generate presentation content
+    2. Returns file ID and download URL with preview
     """
     # Use provided values or defaults
     effective_slides = request.slides if request.slides is not None else settings.default_slides
@@ -109,35 +109,32 @@ async def generate_presentation(
         # Generate unique file ID
         file_id = str(uuid.uuid4())
 
-        # Create placeholder preview
-        # TODO: Replace with actual Ollama-generated content
+        # Call Ollama to generate presentation content
+        ollama_client = get_ollama_client()
+        async with ollama_client:
+            presentation_content = await ollama_client.generate_presentation(
+                topic=request.topic,
+                language=request.language or "en",
+                slides=effective_slides,
+                temperature=effective_temp,
+                num_ctx=effective_ctx
+            )
+
+        # Convert Ollama response to preview format
         preview = PresentationPreview(
-            title=request.topic,
+            title=presentation_content.title,
             slides=[
                 SlidePreview(
-                    type=SlideType.TITLE,
-                    heading=request.topic,
-                    subheading=f"Generated presentation in {request.language}"
-                ),
-                SlidePreview(
-                    type=SlideType.CONTENT,
-                    heading="Key Points",
-                    bullets=[
-                        "This is a placeholder slide",
-                        "Ollama integration pending",
-                        "Content will be AI-generated"
-                    ]
-                ),
-                SlidePreview(
-                    type=SlideType.SUMMARY,
-                    heading="Summary",
-                    bullets=[
-                        "Placeholder implementation",
-                        "Ready for Ollama integration"
-                    ]
+                    type=SlideType(slide.type.value),
+                    heading=slide.heading,
+                    subheading=slide.subheading,
+                    bullets=slide.bullets
                 )
+                for slide in presentation_content.slides
             ]
         )
+
+        logger.info(f"Successfully generated presentation with {len(preview.slides)} slides")
 
         return GenerateResponse(
             success=True,
@@ -146,6 +143,9 @@ async def generate_presentation(
             preview=preview
         )
 
+    except HTTPException:
+        # Re-raise HTTP exceptions (from ollama_client)
+        raise
     except Exception as e:
         logger.error(f"Error generating presentation: {e}")
         # Return error response - don't expose internal details
@@ -188,5 +188,62 @@ async def download_presentation(file_id: str):
                 "message": "Download functionality not yet implemented"
             },
             "fileId": file_id
+        }
+    )
+
+
+# =============================================================================
+# Streaming/Debug Endpoints
+# =============================================================================
+
+@router.post(
+    "/api/v1/stream",
+    tags=["debug"],
+    summary="Stream LLM output",
+    description="Stream raw LLM output for testing and debugging. Returns Server-Sent Events."
+)
+async def stream_generate(
+    request: StreamRequest,
+    settings: Settings = Depends(get_settings)
+):
+    """
+    Stream raw LLM output via Server-Sent Events.
+    Useful for testing prompts and debugging Ollama integration.
+    """
+    logger.info(f"Stream request: prompt length={len(request.prompt)}, system={'yes' if request.system else 'no'}")
+
+    async def event_generator():
+        """Generate SSE events from Ollama stream"""
+        ollama_client = get_ollama_client()
+        async with ollama_client:
+            async for chunk in ollama_client.stream_generate(
+                prompt=request.prompt,
+                system=request.system,
+                temperature=request.temperature,
+                num_ctx=request.num_ctx,
+                num_predict=request.num_predict,
+                top_k=request.top_k,
+                top_p=request.top_p,
+                min_p=request.min_p,
+                repeat_penalty=request.repeat_penalty,
+                repeat_last_n=request.repeat_last_n,
+                seed=request.seed,
+                format_json=request.format_json or False
+            ):
+                # Format as SSE
+                data = json.dumps(chunk)
+                yield f"data: {data}\n\n"
+
+                # If done, send final event
+                if chunk.get("done"):
+                    yield "event: done\ndata: {}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"  # Disable nginx buffering
         }
     )

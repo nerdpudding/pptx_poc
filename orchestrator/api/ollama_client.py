@@ -45,6 +45,7 @@ class OllamaRequest(BaseModel):
     model: str
     prompt: str
     stream: bool = False
+    format: Optional[str] = None  # "json" for JSON mode
     options: Optional[Dict[str, Any]] = None
 
 class OllamaResponse(BaseModel):
@@ -248,6 +249,7 @@ class OllamaClient:
             model=self.settings.ollama_model,
             prompt=prompt,
             stream=False,
+            format="json",  # Force JSON output from Ollama
             options={
                 "temperature": temperature,
                 "num_ctx": num_ctx
@@ -351,6 +353,112 @@ class OllamaClient:
         except ValidationError as e:
             logger.error(f"Presentation content validation failed: {e}")
             raise ValueError(f"Invalid presentation structure: {e}")
+
+    # =========================================================================
+    # Streaming Generator
+    # =========================================================================
+
+    async def stream_generate(
+        self,
+        prompt: str,
+        system: Optional[str] = None,
+        temperature: Optional[float] = None,
+        num_ctx: Optional[int] = None,
+        num_predict: Optional[int] = None,
+        top_k: Optional[int] = None,
+        top_p: Optional[float] = None,
+        min_p: Optional[float] = None,
+        repeat_penalty: Optional[float] = None,
+        repeat_last_n: Optional[int] = None,
+        seed: Optional[int] = None,
+        format_json: bool = False
+    ):
+        """
+        Stream generate response from Ollama.
+        Yields chunks as they arrive.
+
+        Args:
+            prompt: The prompt to send
+            system: Optional system message
+            temperature: Sampling temperature
+            num_ctx: Context window size
+            num_predict: Max tokens to generate
+            top_k: Top-K sampling
+            top_p: Top-P / nucleus sampling
+            min_p: Min-P sampling
+            repeat_penalty: Repetition penalty
+            repeat_last_n: Tokens to look back for repetition
+            seed: Random seed
+            format_json: Force JSON output
+
+        Yields:
+            Dict with 'response' text and 'done' status
+        """
+        # Build options dict with only provided values
+        options = {}
+        if temperature is not None:
+            options["temperature"] = temperature
+        if num_ctx is not None:
+            options["num_ctx"] = num_ctx
+        if num_predict is not None:
+            options["num_predict"] = num_predict
+        if top_k is not None:
+            options["top_k"] = top_k
+        if top_p is not None:
+            options["top_p"] = top_p
+        if min_p is not None:
+            options["min_p"] = min_p
+        if repeat_penalty is not None:
+            options["repeat_penalty"] = repeat_penalty
+        if repeat_last_n is not None:
+            options["repeat_last_n"] = repeat_last_n
+        if seed is not None:
+            options["seed"] = seed
+
+        # Build request
+        request_data = {
+            "model": self.settings.ollama_model,
+            "prompt": prompt,
+            "stream": True
+        }
+
+        if system:
+            request_data["system"] = system
+        if format_json:
+            request_data["format"] = "json"
+        if options:
+            request_data["options"] = options
+
+        logger.info(f"Starting streaming generation with options: {options}")
+
+        try:
+            async with self.client.stream(
+                "POST",
+                "/api/generate",
+                json=request_data
+            ) as response:
+                response.raise_for_status()
+                async for line in response.aiter_lines():
+                    if line:
+                        try:
+                            data = json.loads(line)
+                            yield {
+                                "response": data.get("response", ""),
+                                "done": data.get("done", False),
+                                "eval_count": data.get("eval_count"),
+                                "eval_duration": data.get("eval_duration")
+                            }
+                        except json.JSONDecodeError as e:
+                            logger.warning(f"Failed to parse streaming chunk: {e}")
+                            continue
+
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error during streaming: {e}")
+            yield {"response": f"Error: {e}", "done": True, "error": True}
+        except Exception as e:
+            logger.error(f"Error during streaming: {e}")
+            yield {"response": f"Error: {e}", "done": True, "error": True}
+
 
 # =============================================================================
 # Factory Function

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Debug panel for testing Ollama LLM integration">
+    <title>PPTX POC - Debug Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Debug-specific styles */
+        .debug-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .debug-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .debug-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .debug-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .debug-panel h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .output-area {
+            background: #1a1a2e;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+            min-height: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.5;
+        }
+
+        .output-area .token {
+            color: #a8e6cf;
+        }
+
+        .output-area .error {
+            color: #ff6b6b;
+        }
+
+        .output-area .info {
+            color: #74b9ff;
+        }
+
+        .prompt-input {
+            width: 100%;
+            min-height: 150px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            padding: 10px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+            resize: vertical;
+        }
+
+        .system-input {
+            width: 100%;
+            min-height: 80px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            padding: 10px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+
+        .param-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .param-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .param-item label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .param-item input,
+        .param-item select {
+            padding: 8px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .param-item .range-value {
+            font-size: 0.8rem;
+            color: var(--text-accent);
+            text-align: right;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .button-row button {
+            flex: 1;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stats-bar span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .nav-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--text-accent);
+            text-decoration: none;
+        }
+
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <a href="/" class="nav-link">&larr; Back to Generator</a>
+        <h1>LLM Debug Panel</h1>
+
+        <div id="status" class="status status-info">
+            Checking API status...
+        </div>
+
+        <div class="debug-grid">
+            <!-- Input Panel -->
+            <div class="debug-panel">
+                <h2>Input</h2>
+
+                <label for="systemPrompt">System Message (optional)</label>
+                <textarea
+                    id="systemPrompt"
+                    class="system-input"
+                    placeholder="Optional system message to guide the model's behavior..."
+                ></textarea>
+
+                <label for="prompt">Prompt</label>
+                <textarea
+                    id="prompt"
+                    class="prompt-input"
+                    placeholder="Enter your prompt here..."
+                    required
+                >Generate a JSON object with a presentation about "AI in Healthcare" with 3 slides. Return only valid JSON.</textarea>
+
+                <h3>Parameters</h3>
+                <div class="param-grid">
+                    <div class="param-item">
+                        <label for="temperature">Temperature</label>
+                        <input type="range" id="temperature" min="0" max="2" step="0.05" value="0.15">
+                        <span class="range-value" id="tempValue">0.15</span>
+                    </div>
+                    <div class="param-item">
+                        <label for="numCtx">Context Size</label>
+                        <select id="numCtx">
+                            <option value="4096">4K</option>
+                            <option value="8192">8K</option>
+                            <option value="16384">16K</option>
+                            <option value="32768">32K</option>
+                            <option value="65536">64K</option>
+                            <option value="102400">100K</option>
+                            <option value="122880" selected>120K</option>
+                            <option value="131072">128K</option>
+                            <option value="174080">170K</option>
+                            <option value="204800">200K</option>
+                            <option value="262144">256K</option>
+                        </select>
+                    </div>
+                    <div class="param-item">
+                        <label for="numPredict">Max Tokens</label>
+                        <select id="numPredict">
+                            <option value="256">256</option>
+                            <option value="512">512</option>
+                            <option value="1024">1K</option>
+                            <option value="2048" selected>2K</option>
+                            <option value="4096">4K</option>
+                            <option value="8192">8K</option>
+                            <option value="-1">Unlimited</option>
+                        </select>
+                    </div>
+                    <div class="param-item">
+                        <label for="topK">Top-K</label>
+                        <input type="range" id="topK" min="1" max="100" step="1" value="40">
+                        <span class="range-value" id="topKValue">40</span>
+                    </div>
+                    <div class="param-item">
+                        <label for="topP">Top-P</label>
+                        <input type="range" id="topP" min="0" max="1" step="0.05" value="0.9">
+                        <span class="range-value" id="topPValue">0.90</span>
+                    </div>
+                    <div class="param-item">
+                        <label for="repeatPenalty">Repeat Penalty</label>
+                        <input type="range" id="repeatPenalty" min="0" max="2" step="0.1" value="1.1">
+                        <span class="range-value" id="repeatPenaltyValue">1.1</span>
+                    </div>
+                </div>
+
+                <div class="param-grid">
+                    <div class="param-item checkbox-item">
+                        <input type="checkbox" id="formatJson">
+                        <label for="formatJson">Force JSON output</label>
+                    </div>
+                    <div class="param-item">
+                        <label for="seed">Seed (0 = random)</label>
+                        <input type="number" id="seed" min="0" value="0">
+                    </div>
+                </div>
+
+                <div class="button-row">
+                    <button type="button" id="generateBtn" class="button button-primary">
+                        <span id="buttonText">Generate</span>
+                        <span id="spinner" class="spinner hidden"></span>
+                    </button>
+                    <button type="button" id="stopBtn" class="button button-secondary" disabled>
+                        Stop
+                    </button>
+                    <button type="button" id="clearBtn" class="button button-secondary">
+                        Clear
+                    </button>
+                </div>
+            </div>
+
+            <!-- Output Panel -->
+            <div class="debug-panel">
+                <h2>Output</h2>
+                <div id="output" class="output-area">
+                    <span class="info">Output will appear here as it streams...</span>
+                </div>
+                <div class="stats-bar">
+                    <span>Tokens: <strong id="tokenCount">0</strong></span>
+                    <span>Time: <strong id="elapsedTime">0.0s</strong></span>
+                    <span>Speed: <strong id="tokenSpeed">0</strong> t/s</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        'use strict';
+
+        // ==========================================================================
+        // Elements
+        // ==========================================================================
+
+        const elements = {
+            status: document.getElementById('status'),
+            systemPrompt: document.getElementById('systemPrompt'),
+            prompt: document.getElementById('prompt'),
+            temperature: document.getElementById('temperature'),
+            tempValue: document.getElementById('tempValue'),
+            numCtx: document.getElementById('numCtx'),
+            numPredict: document.getElementById('numPredict'),
+            topK: document.getElementById('topK'),
+            topKValue: document.getElementById('topKValue'),
+            topP: document.getElementById('topP'),
+            topPValue: document.getElementById('topPValue'),
+            repeatPenalty: document.getElementById('repeatPenalty'),
+            repeatPenaltyValue: document.getElementById('repeatPenaltyValue'),
+            formatJson: document.getElementById('formatJson'),
+            seed: document.getElementById('seed'),
+            generateBtn: document.getElementById('generateBtn'),
+            buttonText: document.getElementById('buttonText'),
+            spinner: document.getElementById('spinner'),
+            stopBtn: document.getElementById('stopBtn'),
+            clearBtn: document.getElementById('clearBtn'),
+            output: document.getElementById('output'),
+            tokenCount: document.getElementById('tokenCount'),
+            elapsedTime: document.getElementById('elapsedTime'),
+            tokenSpeed: document.getElementById('tokenSpeed')
+        };
+
+        // ==========================================================================
+        // State
+        // ==========================================================================
+
+        let state = {
+            isGenerating: false,
+            abortController: null,
+            startTime: null,
+            tokenCount: 0
+        };
+
+        // ==========================================================================
+        // Initialization
+        // ==========================================================================
+
+        function init() {
+            // Bind slider updates
+            elements.temperature.addEventListener('input', () => {
+                elements.tempValue.textContent = parseFloat(elements.temperature.value).toFixed(2);
+            });
+            elements.topK.addEventListener('input', () => {
+                elements.topKValue.textContent = elements.topK.value;
+            });
+            elements.topP.addEventListener('input', () => {
+                elements.topPValue.textContent = parseFloat(elements.topP.value).toFixed(2);
+            });
+            elements.repeatPenalty.addEventListener('input', () => {
+                elements.repeatPenaltyValue.textContent = parseFloat(elements.repeatPenalty.value).toFixed(1);
+            });
+
+            // Bind buttons
+            elements.generateBtn.addEventListener('click', handleGenerate);
+            elements.stopBtn.addEventListener('click', handleStop);
+            elements.clearBtn.addEventListener('click', handleClear);
+
+            // Check API health
+            checkHealth();
+        }
+
+        // ==========================================================================
+        // API Functions
+        // ==========================================================================
+
+        async function checkHealth() {
+            try {
+                const response = await fetch('/health');
+                if (response.ok) {
+                    updateStatus('Ready to generate', 'info');
+                } else {
+                    updateStatus('API not responding correctly', 'warning');
+                }
+            } catch (error) {
+                updateStatus('Cannot connect to API', 'error');
+            }
+        }
+
+        async function handleGenerate() {
+            if (state.isGenerating) return;
+
+            const prompt = elements.prompt.value.trim();
+            if (!prompt) {
+                updateStatus('Please enter a prompt', 'error');
+                return;
+            }
+
+            // Reset state
+            state.isGenerating = true;
+            state.abortController = new AbortController();
+            state.startTime = Date.now();
+            state.tokenCount = 0;
+
+            // Update UI
+            setGeneratingState(true);
+            elements.output.innerHTML = '';
+            updateStats();
+
+            // Build request
+            const requestBody = {
+                prompt: prompt,
+                temperature: parseFloat(elements.temperature.value),
+                num_ctx: parseInt(elements.numCtx.value),
+                num_predict: parseInt(elements.numPredict.value),
+                top_k: parseInt(elements.topK.value),
+                top_p: parseFloat(elements.topP.value),
+                repeat_penalty: parseFloat(elements.repeatPenalty.value),
+                format_json: elements.formatJson.checked
+            };
+
+            const system = elements.systemPrompt.value.trim();
+            if (system) {
+                requestBody.system = system;
+            }
+
+            const seed = parseInt(elements.seed.value);
+            if (seed > 0) {
+                requestBody.seed = seed;
+            }
+
+            try {
+                const response = await fetch('/api/v1/stream', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody),
+                    signal: state.abortController.signal
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                // Read stream
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+
+                    // Process complete SSE messages
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+
+                                if (data.error) {
+                                    appendOutput(data.response, 'error');
+                                } else if (data.response) {
+                                    appendOutput(data.response, 'token');
+                                    state.tokenCount++;
+                                    updateStats();
+                                }
+
+                                if (data.done) {
+                                    updateStatus('Generation complete', 'success');
+                                }
+                            } catch (e) {
+                                // Ignore parse errors for incomplete JSON
+                            }
+                        }
+                    }
+                }
+
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    updateStatus('Generation stopped', 'warning');
+                    appendOutput('\n[Stopped by user]', 'info');
+                } else {
+                    updateStatus(`Error: ${error.message}`, 'error');
+                    appendOutput(`\nError: ${error.message}`, 'error');
+                }
+            } finally {
+                state.isGenerating = false;
+                setGeneratingState(false);
+            }
+        }
+
+        function handleStop() {
+            if (state.abortController) {
+                state.abortController.abort();
+            }
+        }
+
+        function handleClear() {
+            elements.output.innerHTML = '<span class="info">Output will appear here as it streams...</span>';
+            state.tokenCount = 0;
+            elements.tokenCount.textContent = '0';
+            elements.elapsedTime.textContent = '0.0s';
+            elements.tokenSpeed.textContent = '0';
+        }
+
+        // ==========================================================================
+        // UI Functions
+        // ==========================================================================
+
+        function updateStatus(message, type) {
+            elements.status.className = `status status-${type}`;
+            elements.status.textContent = message;
+        }
+
+        function setGeneratingState(generating) {
+            elements.generateBtn.disabled = generating;
+            elements.stopBtn.disabled = !generating;
+            elements.buttonText.textContent = generating ? 'Generating...' : 'Generate';
+            elements.spinner.classList.toggle('hidden', !generating);
+        }
+
+        function appendOutput(text, type) {
+            // Remove placeholder if present
+            const placeholder = elements.output.querySelector('.info');
+            if (placeholder && placeholder.textContent.includes('Output will appear')) {
+                placeholder.remove();
+            }
+
+            const span = document.createElement('span');
+            span.className = type;
+            span.textContent = text;
+            elements.output.appendChild(span);
+
+            // Auto-scroll to bottom
+            elements.output.scrollTop = elements.output.scrollHeight;
+        }
+
+        function updateStats() {
+            const elapsed = (Date.now() - state.startTime) / 1000;
+            const speed = elapsed > 0 ? (state.tokenCount / elapsed).toFixed(1) : 0;
+
+            elements.tokenCount.textContent = state.tokenCount;
+            elements.elapsedTime.textContent = elapsed.toFixed(1) + 's';
+            elements.tokenSpeed.textContent = speed;
+        }
+
+        // ==========================================================================
+        // Start
+        // ==========================================================================
+
+        init();
+    })();
+    </script>
+</body>
+</html>

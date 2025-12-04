@@ -85,9 +85,11 @@
         // Bind settings change listeners
         if (elements.slidesInput) {
             elements.slidesInput.addEventListener('input', updateSlidesDisplay);
+            updateSlidesDisplay(); // Set initial value
         }
         if (elements.temperatureInput) {
             elements.temperatureInput.addEventListener('input', updateTemperatureDisplay);
+            updateTemperatureDisplay(); // Set initial value
         }
 
         // Check API health on load

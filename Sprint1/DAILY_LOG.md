@@ -15,7 +15,7 @@
 ## Current Sprint Status
 
 **Sprint Start:** 2025-12-04
-**Overall Progress:** 71%
+**Overall Progress:** 82%
 
 ### Phase Progress
 | Phase | Status | Progress |
@@ -23,15 +23,15 @@
 | Project Setup | Completed | 100% |
 | Backend + Container | Completed | 100% |
 | PPTX Generator + Container | In Progress | 59% |
-| Frontend + Container | In Progress | 77% |
-| Integration & Testing | Not Started | 0% |
+| Frontend + Container | Completed | 100% |
+| Integration & Testing | In Progress | 33% |
 
 ### Progress Visualization
 
 ```mermaid
 pie title Sprint 1 Progress
-    "Completed" : 58
-    "Remaining" : 24
+    "Completed" : 67
+    "Remaining" : 15
 ```
 
 ---
@@ -149,6 +149,84 @@ pie title Sprint 1 Progress
 - Test frontend in browser (http://localhost:5102)
 - Implement actual Ollama client
 - Implement actual PPTX file generation
+
+---
+
+### 2025-12-04 - Day 1 (Session 3)
+
+**Status:** Green
+**Focus:** Ollama integration, streaming, debug panel
+
+#### Tasks Completed
+
+**Ollama Client Fixes:**
+- [x] Fixed `HTTPException` import in ollama_client.py
+- [x] Removed invalid `Depends()` from class constructor
+- [x] Fixed model name to match actual Ollama model (`ministral-3-14b-it-2512-q8-120k:latest`)
+- [x] Added `format: "json"` parameter for reliable JSON output
+- [x] Added `tenacity` to requirements.txt for retry logic
+- [x] Improved JSON cleaning with regex for markdown code blocks
+
+**Ollama API Research:**
+- [x] Documented all Ollama API parameters in `Sprint1/ollama_api_research.md`
+- [x] Sources: docs.ollama.com, GitHub ollama/ollama, ollama-python
+
+**Streaming Implementation:**
+- [x] Added `StreamRequest` model with full Ollama parameter support
+- [x] Implemented `stream_generate()` method in OllamaClient
+- [x] Created `/api/v1/stream` SSE endpoint in routes.py
+- [x] Updated nginx timeouts to 180s for long LLM requests
+
+**Debug Panel (`debug.html`):**
+- [x] Created full-featured LLM testing interface
+- [x] System prompt input (editable)
+- [x] All Ollama parameters exposed:
+  - Temperature (0-2 slider)
+  - Context size (4K-256K dropdown)
+  - Max tokens (256-unlimited)
+  - Top-K, Top-P, Repeat penalty sliders
+  - Seed input
+  - Force JSON checkbox
+- [x] Live streaming output display
+- [x] Real-time stats: token count, elapsed time, tokens/sec
+- [x] Stop/Clear functionality
+
+**Frontend Settings (main app):**
+- [x] Added Advanced Settings panel (collapsible)
+- [x] Slides slider (3-10)
+- [x] Temperature slider (0-2)
+- [x] Context size dropdown
+- [x] Fixed slider value display on page load
+
+#### Test Results
+- [x] Streaming endpoint works - SSE events received correctly
+- [x] Ollama generates valid JSON presentation structure
+- [x] Debug panel shows live token output
+- [x] Measured: ~3.7 tokens/sec with 14B model @ 120K context (~215s for 803 tokens)
+
+#### Known Issues
+- Generation is slow (~3.7 t/s) - expected with 14B Q8 model and large context
+- Main `/api/v1/generate` endpoint still has JSON parsing issues (use debug panel for now)
+
+#### Learnings
+- Ollama `format: "json"` is essential for reliable JSON output
+- File permissions matter in Docker - 600 permissions block nginx
+- SSE streaming requires `X-Accel-Buffering: no` header for nginx
+
+#### Files Changed
+```
+orchestrator/api/ollama_client.py  - Streaming, fixes
+orchestrator/api/routes.py         - Stream endpoint
+orchestrator/api/models.py         - StreamRequest model
+orchestrator/requirements.txt      - Added tenacity
+orchestrator/config.py             - Model name, timeouts
+frontend/static/debug.html         - NEW: Debug panel
+frontend/static/index.html         - Settings panel
+frontend/static/style.css          - Settings styling
+frontend/static/app.js             - Settings wiring
+frontend/nginx.conf                - 180s timeouts
+Sprint1/ollama_api_research.md     - NEW: API docs
+```
 
 ---
 
@@ -287,9 +365,31 @@ curl -X POST http://localhost:5000/api/v1/generate \
 **Traffic Light:** Green
 
 ```
-Overall:   [=======   ] 71%
+Overall:   [========  ] 82%
 Setup:     [==========] 100%
 Backend:   [==========] 100%
 PPTX:      [======    ] 59%
-Frontend:  [========  ] 77%
+Frontend:  [==========] 100%
+Integration:[===       ] 33%
 ```
+
+## What Works Now
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Docker stack | Working | All containers build and run |
+| Health endpoints | Working | All services respond |
+| Ollama connection | Working | From orchestrator container |
+| Streaming API | Working | `/api/v1/stream` with SSE |
+| Debug panel | Working | `http://localhost:5102/debug.html` |
+| JSON generation | Working | Ollama returns structured presentation JSON |
+| Frontend settings | Working | Temperature, context, slides configurable |
+
+## What Needs Work
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Main generate endpoint | Partial | JSON parsing needs fixing |
+| PPTX file creation | Not started | python-pptx integration pending |
+| Download functionality | Placeholder | Returns 501 |
+| Performance | Slow | ~3.7 t/s - consider smaller model/context |

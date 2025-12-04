@@ -55,15 +55,97 @@ class GenerateRequest(BaseModel):
     )
     num_ctx: Optional[int] = Field(
         default=None,
-        ge=4096,
-        le=131072,
-        description="Context window size. Larger allows longer prompts but uses more memory"
+        ge=2048,
+        le=262144,
+        description="Context window size (2K-256K). Larger allows longer prompts but uses more VRAM"
     )
     slides: Optional[int] = Field(
         default=None,
         ge=3,
         le=10,
         description="Number of slides to generate (3-10)"
+    )
+
+
+class StreamRequest(BaseModel):
+    """
+    Streaming test/debug request with full Ollama parameter control.
+    Used for testing and debugging LLM output.
+    """
+    prompt: str = Field(
+        ...,
+        min_length=1,
+        max_length=10000,
+        description="The prompt to send to Ollama"
+    )
+    system: Optional[str] = Field(
+        default=None,
+        max_length=10000,
+        description="System message (overrides default)"
+    )
+
+    # Sampling parameters
+    temperature: Optional[float] = Field(
+        default=None,
+        ge=0.0,
+        le=2.0,
+        description="Sampling temperature (0.0-2.0)"
+    )
+    top_k: Optional[int] = Field(
+        default=None,
+        ge=1,
+        le=100,
+        description="Top-K sampling (1-100)"
+    )
+    top_p: Optional[float] = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description="Top-P / nucleus sampling (0.0-1.0)"
+    )
+    min_p: Optional[float] = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description="Min-P sampling (0.0-1.0)"
+    )
+
+    # Output control
+    num_ctx: Optional[int] = Field(
+        default=None,
+        ge=2048,
+        le=262144,
+        description="Context window size (2K-256K)"
+    )
+    num_predict: Optional[int] = Field(
+        default=None,
+        ge=-1,
+        le=16384,
+        description="Max tokens to generate (-1 = infinite)"
+    )
+
+    # Repetition control
+    repeat_penalty: Optional[float] = Field(
+        default=None,
+        ge=0.0,
+        le=2.0,
+        description="Repetition penalty (1.0 = no penalty)"
+    )
+    repeat_last_n: Optional[int] = Field(
+        default=None,
+        ge=-1,
+        le=4096,
+        description="Tokens to look back for repetition (-1 = num_ctx)"
+    )
+
+    # Other
+    seed: Optional[int] = Field(
+        default=None,
+        description="Random seed for reproducibility"
+    )
+    format_json: Optional[bool] = Field(
+        default=False,
+        description="Force JSON output format"
     )
 
 

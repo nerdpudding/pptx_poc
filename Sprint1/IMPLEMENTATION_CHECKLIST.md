@@ -19,9 +19,9 @@
 | Project Setup | 9 | 9 | 100% |
 | Backend + Container | 22 | 22 | 100% |
 | PPTX Generator + Container | 17 | 10 | 59% |
-| Frontend + Container | 22 | 17 | 77% |
-| Integration & Testing | 12 | 0 | 0% |
-| **Total** | **82** | **58** | **71%** |
+| Frontend + Container | 22 | 22 | 100% |
+| Integration & Testing | 12 | 4 | 33% |
+| **Total** | **82** | **67** | **82%** |
 
 ---
 
@@ -76,7 +76,7 @@
 - [x] Test `docker compose up orchestrator`
 - [x] Test health endpoint with curl
 - [x] Test generate endpoint with curl (placeholder response OK)
-- [ ] Verify Ollama communication works in container (pending test)
+- [x] Verify Ollama communication works in container (streaming tested, JSON response received)
 
 ---
 
@@ -154,6 +154,15 @@
 - [x] Test `docker compose up frontend`
 - [x] Verify nginx serves static files (health OK)
 - [x] Verify API proxy works correctly
+- [x] Verify streaming responses work through nginx proxy
+
+### Debug Panel (Added)
+- [x] Create `frontend/static/debug.html` - LLM testing interface
+- [x] Implement SSE streaming display
+- [x] Add all Ollama parameters (temp, num_ctx, num_predict, top_k, top_p, repeat_penalty, seed)
+- [x] Add system prompt input
+- [x] Add real-time token count, elapsed time, tokens/sec stats
+- [x] Add stop/clear functionality
 
 ---
 
@@ -162,20 +171,23 @@
 > **All services running together: `docker compose up`**
 
 ### End-to-End Testing
+- [x] Test Ollama streaming via debug panel (working)
+- [x] Test JSON response parsing (working - structured presentation JSON received)
 - [ ] Test complete workflow (input → generate → download)
 - [ ] Test error scenarios (invalid input, Ollama down, etc.)
 - [ ] Test timeout handling
 - [ ] Test concurrent requests
 
 ### Performance Testing
-- [ ] Verify response time < 30 seconds
+- [x] Measure token generation speed (~3.7 t/s with 14B model @ 120K context)
+- [ ] Verify response time < 30 seconds (currently ~215s for full response - needs optimization)
 - [ ] Check container memory usage
 - [ ] Check Docker image sizes < 200MB each
 
 ### Final Validation
 - [ ] Test on different browsers
 - [ ] Test mobile responsiveness
-- [ ] Verify all health endpoints respond
+- [x] Verify all health endpoints respond
 - [ ] Document any known issues
 
 ---
