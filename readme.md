@@ -2,8 +2,27 @@
 
 ## 📋 Project Overview
 
-**Status:** 🚀 Sprint 1 Implementation In Progress (62%)
+**Status:** 🚀 Sprint 1 Implementation In Progress (85%)
 **Objective:** Create a minimal viable POC demonstrating that local AI models running in Ollama can generate professional PowerPoint presentations through a simple web interface using natural language input.
+
+## ✨ Current Features
+
+### Two Generation Modes
+
+| Mode | Description | Status |
+|------|-------------|--------|
+| **Quick Mode** | Enter a topic, get a presentation draft instantly | ✅ Working |
+| **Guided Mode** | AI assistant guides you through requirements conversationally | ✅ Working |
+
+### What Works Now
+- 🤖 **AI-Powered Draft Generation** - Structured presentation outlines
+- 💬 **Conversational Interface** - Chat with AI to refine your presentation
+- 📝 **Draft Preview** - See your slides before generating
+- ⚡ **Real-time Streaming** - Watch AI responses appear live
+- 🐳 **Fully Dockerized** - One command to run everything
+
+### Coming Next
+- 📥 **PPTX Download** - Generate actual PowerPoint files from drafts
 
 ## 🎯 Project Goals
 
@@ -168,7 +187,24 @@ See [QUICK_INSTALL.md](QUICK_INSTALL.md) for detailed setup instructions, includ
 For questions about this POC:
 - **Project Lead:** [Your Name]
 - **Status:** Active development
-- **Current Phase:** Sprint 1 Implementation (62% complete)
+- **Current Phase:** Sprint 1 Implementation (85% complete)
+
+---
+
+## 🗺️ Roadmap
+
+### Sprint 1 (Current) - Core Functionality
+- [x] Quick Mode: Topic → Draft generation
+- [x] Guided Mode: Conversational AI assistant
+- [x] Draft preview with structured slides
+- [ ] **PPTX file generation** ← Next priority
+- [ ] **Download functionality** ← Next priority
+
+### Sprint 2 (Planned) - Enhanced Output
+- [ ] Multiple slide templates
+- [ ] Image integration
+- [ ] 5-10 slide support
+- [ ] Theme selection
 
 ---
 

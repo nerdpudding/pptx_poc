@@ -2,8 +2,21 @@
 
 ## Project Overview
 **Project Name:** PPTX Generation with Local AI
-**Status:** Planning Phase (Sprint 0)
+**Status:** Sprint 1 Implementation (85% Complete)
 **Objective:** Create a minimal viable POC demonstrating that local AI models (Ollama) can generate PowerPoint presentations through a simple web interface using natural language input.
+
+## Current State (December 2025)
+
+### What's Working
+- **Quick Mode**: Direct topic input → AI-generated presentation draft
+- **Guided Mode**: Conversational AI assistant guides users through presentation requirements
+- **Draft Generation**: AI creates structured slide outlines from user input
+- **Draft Preview**: Visual preview of slides before final generation
+- **Streaming Responses**: Real-time AI response display via SSE
+
+### What's Next
+- **PPTX File Generation**: Convert drafts to actual PowerPoint files using python-pptx
+- **Download Functionality**: Enable downloading of generated presentations
 
 ## Sprint 0: Project Initiation
 

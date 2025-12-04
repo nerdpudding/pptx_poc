@@ -7,12 +7,13 @@
 ## Table of Contents
 
 1. [Architecture Overview](#architecture-overview)
-2. [Configuration Hierarchy](#configuration-hierarchy)
-3. [SOLID Principles Applied](#solid-principles-applied)
-4. [Service Details](#service-details)
-5. [API Contract](#api-contract)
-6. [Security Considerations](#security-considerations)
-7. [Code Patterns](#code-patterns)
+2. [Generation Modes](#generation-modes)
+3. [Configuration Hierarchy](#configuration-hierarchy)
+4. [SOLID Principles Applied](#solid-principles-applied)
+5. [Service Details](#service-details)
+6. [API Contract](#api-contract)
+7. [Security Considerations](#security-considerations)
+8. [Code Patterns](#code-patterns)
 
 ---
 
@@ -60,6 +61,65 @@ All services run in Docker containers. This ensures:
 - **ollama-network**: External network connecting to Ollama
 
 Ollama runs externally so it can be shared across projects and doesn't need to reload models.
+
+---
+
+## Generation Modes
+
+The system supports two presentation generation modes:
+
+### Quick Mode
+
+Direct topic-to-draft generation for users who know what they want.
+
+```
+User Input → Ollama LLM → Structured Draft → Preview → (PPTX Generation)
+```
+
+**Flow:**
+1. User enters topic in text field
+2. System sends prompt to Ollama with template context
+3. Ollama returns structured JSON (title, slides, bullets)
+4. Frontend displays draft preview
+5. User clicks generate (PPTX creation pending)
+
+### Guided Mode
+
+Conversational AI assistant that helps gather requirements through natural dialogue.
+
+```
+User ←→ AI Conversation → [READY_FOR_DRAFT] → Draft Generation → Preview
+```
+
+**Flow:**
+1. User selects template and starts session
+2. AI greets user and asks about their idea
+3. User describes requirements conversationally
+4. AI extracts information and asks clarifying questions
+5. When ready, AI signals with `[READY_FOR_DRAFT]` marker
+6. User clicks "Create Draft" to generate structured outline
+7. User reviews draft preview
+8. User clicks generate (PPTX creation pending)
+
+**Key Components:**
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| Session Manager | `orchestrator/session_manager.py` | In-memory session storage |
+| Chat Routes | `orchestrator/api/chat_routes.py` | Chat API endpoints |
+| Guided Config | `orchestrator/prompts.yaml` | Per-template guided mode settings |
+
+**Session Lifecycle:**
+- Sessions expire after 30 minutes of inactivity
+- Each session stores: conversation history, template, draft state
+- Sessions are identified by UUID
+
+**Marker Detection:**
+The `[READY_FOR_DRAFT]` marker is:
+- Added by the AI when it has gathered sufficient information
+- Detected server-side during streaming
+- Filtered from user-visible output using buffered streaming
+- Triggers UI state change (enables "Create Draft" button with highlight)
 
 ---
 
@@ -299,6 +359,82 @@ Content-Type: application/json
 | `num_ctx` | Optional, 4096-131072 |
 | `slides` | Optional, 3-10 |
 
+### Chat API (Guided Mode)
+
+#### Start Session
+
+```http
+POST /api/v1/chat/start
+Content-Type: application/json
+
+{
+    "template": "project_init"
+}
+```
+
+**Response:**
+```json
+{
+    "session_id": "uuid-here",
+    "message": "I'll help you create a Project Initiation Document..."
+}
+```
+
+#### Send Message
+
+```http
+POST /api/v1/chat/{session_id}/message
+Content-Type: application/json
+
+{
+    "message": "I want to build an AI-powered presentation tool"
+}
+```
+
+**Response:** Server-Sent Events (SSE) stream
+
+```
+data: {"content": "That sounds", "done": false, "is_ready_for_draft": false}
+data: {"content": " interesting!", "done": false, "is_ready_for_draft": false}
+data: {"content": "", "done": true, "is_ready_for_draft": true}
+```
+
+#### Generate Draft
+
+```http
+POST /api/v1/chat/{session_id}/draft
+```
+
+**Response:**
+```json
+{
+    "session_id": "uuid-here",
+    "draft": {
+        "title": "AI Presentation Tool - PID",
+        "slides": [
+            {"type": "title", "heading": "...", "subheading": "..."},
+            {"type": "content", "heading": "...", "bullets": ["...", "..."]}
+        ]
+    }
+}
+```
+
+#### Generate Final Presentation
+
+```http
+POST /api/v1/chat/{session_id}/generate
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "fileId": "uuid-here",
+    "downloadUrl": "/api/v1/download/uuid-here",
+    "preview": { ... }
+}
+```
+
 ---
 
 ## Security Considerations
@@ -426,13 +562,17 @@ pptx_poc/
 │   ├── requirements.txt
 │   ├── main.py                 # FastAPI app setup
 │   ├── config.py               # pydantic-settings config
+│   ├── prompts.yaml            # Prompt templates and guided mode config
+│   ├── prompt_loader.py        # YAML loader with caching
+│   ├── session_manager.py      # Chat session state management
 │   └── api/
 │       ├── __init__.py
-│       ├── models.py           # Pydantic models
-│       ├── routes.py           # API endpoints
+│       ├── models.py           # Pydantic models (Quick + Guided mode)
+│       ├── routes.py           # Quick mode API endpoints
+│       ├── chat_routes.py      # Guided mode chat API endpoints
 │       └── ollama_client.py    # Ollama HTTP client
 │
-├── pptx-generator/             # PPTX creation service
+├── pptx-generator/             # PPTX creation service (pending implementation)
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   └── generator.py            # FastAPI app + PPTX logic
@@ -441,14 +581,16 @@ pptx_poc/
 │   ├── Dockerfile
 │   ├── nginx.conf              # Proxy + static serving
 │   └── static/
-│       ├── index.html
-│       ├── style.css
-│       └── app.js
+│       ├── index.html          # Main app with mode toggle
+│       ├── style.css           # Styling including chat interface
+│       ├── app.js              # App logic for both modes
+│       └── debug.html          # LLM testing interface
 │
 └── Sprint1/                    # Project management
     ├── IMPLEMENTATION_CHECKLIST.md
     ├── DAILY_LOG.md
-    └── SPRINT1_PLAN.md
+    ├── SPRINT1_PLAN.md
+    └── GUIDED_MODE_REQUIREMENTS.md
 ```
 
 ---
@@ -512,6 +654,24 @@ docker compose exec orchestrator curl http://ollama:11434/api/tags
 2. Style in `style.css`
 3. Wire up in `app.js` (add to `getSettingsValues()`)
 4. Add to API request body
+
+---
+
+## Next Steps
+
+The current implementation has completed:
+- ✅ Quick Mode (topic → draft)
+- ✅ Guided Mode (conversation → draft)
+- ✅ Draft preview
+
+**Next priority: PPTX File Generation**
+
+To complete the workflow, the `pptx-generator` service needs to:
+1. Accept the draft JSON structure
+2. Use `python-pptx` to create actual PowerPoint files
+3. Return file for download
+
+See `pptx-generator/generator.py` for the placeholder implementation.
 
 ---
 

@@ -289,24 +289,98 @@ orchestrator/requirements.txt     - Added pyyaml
 
 ---
 
-### [YYYY-MM-DD] - Day X
+### 2025-12-04 - Day 1 (Session 5)
 
-**Status:** Green / Yellow / Red
-**Focus:** [Main objective for today]
+**Status:** Green
+**Focus:** Guided Mode Implementation - AI-Assisted Conversational Presentation Building
 
 #### Tasks Completed
-- [ ] Task 1 - [Time spent]
-- [ ] Task 2 - [Time spent]
+
+**Guided Mode Feature (Complete):**
+- [x] Designed Guided Mode architecture for conversational presentation building
+- [x] Created `GUIDED_MODE_REQUIREMENTS.md` specification document
+- [x] Implemented session management (`orchestrator/session_manager.py`)
+- [x] Created chat API routes (`orchestrator/api/chat_routes.py`)
+- [x] Added Pydantic models for chat (ChatStartRequest, ChatMessageRequest, ChatDraftResponse, etc.)
+- [x] Implemented SSE streaming for real-time AI responses
+- [x] Added `[READY_FOR_DRAFT]` marker detection with buffered streaming
+- [x] Extended `prompts.yaml` with guided_mode configuration per template
+- [x] Added `draft_system_prompt` for draft generation from conversation
+- [x] Implemented `generate_from_prompt()` method in OllamaClient
+
+**Frontend Guided Mode UI:**
+- [x] Added mode toggle (Quick Mode / Guided Mode)
+- [x] Created chat interface with message bubbles
+- [x] Implemented real-time streaming message display
+- [x] Added "Create Draft" button with pulse highlight animation when ready
+- [x] Added "Generate Presentation" button for final output
+- [x] Added "New Session" button for conversation reset
+- [x] Styled chat interface with dark theme
+
+**Bug Fixes:**
+- [x] Fixed draft generation ignoring conversation history
+- [x] Increased Pydantic max_length for heading/subheading (200→500)
+- [x] Increased max bullets per slide (10→20)
+- [x] Fixed `[READY_FOR_DRAFT]` marker appearing in chat (buffered streaming)
+- [x] Added strict bullet point limits in draft prompt (3-5 per slide)
+
+#### New Files Created
+```
+orchestrator/session_manager.py     - Chat session state management
+orchestrator/api/chat_routes.py     - Chat API endpoints
+Sprint1/GUIDED_MODE_REQUIREMENTS.md - Feature specification
+```
+
+#### Files Modified
+```
+orchestrator/api/models.py          - Chat-related Pydantic models
+orchestrator/api/ollama_client.py   - generate_from_prompt(), increased limits
+orchestrator/prompts.yaml           - guided_mode config, draft_system_prompt
+orchestrator/main.py                - Include chat router
+frontend/static/index.html          - Mode toggle, chat UI
+frontend/static/style.css           - Chat styling, pulse animation
+frontend/static/app.js              - Chat logic, session management
+```
+
+#### API Endpoints Added
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/chat/start` | POST | Start guided session |
+| `/api/v1/chat/{session_id}/message` | POST | Send message (SSE stream) |
+| `/api/v1/chat/{session_id}/draft` | POST | Generate draft from conversation |
+| `/api/v1/chat/{session_id}/generate` | POST | Generate final presentation |
+| `/api/v1/chat/{session_id}` | GET | Get session info |
+| `/api/v1/chat/{session_id}` | DELETE | Delete session |
 
 #### Container Testing
-- [ ] `docker compose build <service>` - Success/Fail
-- [ ] `docker compose up <service>` - Success/Fail
+- [x] `docker compose build` - All containers rebuilt
+- [x] Full guided mode flow tested end-to-end
+- [x] SSE streaming verified through nginx proxy
+- [x] Draft generation working with conversation context
 
-#### Blockers
-- None / [Description + Resolution plan]
+#### What Works Now
+| Feature | Status |
+|---------|--------|
+| Quick Mode | ✅ Working |
+| Guided Mode session start | ✅ Working |
+| Conversational AI chat | ✅ Working (streaming) |
+| Ready-for-draft detection | ✅ Working |
+| Draft generation | ✅ Working |
+| Draft preview | ✅ Working |
+| New Session reset | ✅ Working |
 
-#### Learnings
-- [Key insight or discovery]
+#### What Needs Work
+| Feature | Status | Notes |
+|---------|--------|-------|
+| PPTX file generation | Not started | Draft → actual PPTX file |
+| Download functionality | Placeholder | Returns file ID, no actual file |
+
+#### Next Steps
+- Implement actual PPTX file generation using python-pptx
+- Connect draft structure to PPTX generator service
+- Add download functionality for generated files
+
+---
 
 ---
 
@@ -443,14 +517,29 @@ Integration:[===       ] 33%
 | Debug panel | Working | `http://localhost:5102/debug.html` |
 | JSON generation | Working | Ollama returns structured presentation JSON |
 | Frontend settings | Working | Temperature, context, slides configurable |
+| **Quick Mode** | Working | Direct topic → draft generation |
+| **Guided Mode** | Working | Conversational AI-assisted flow |
+| Chat session management | Working | In-memory sessions with 30min TTL |
+| Streaming chat responses | Working | SSE with real-time display |
+| Draft generation | Working | Conversation → structured draft |
+| Draft preview | Working | Displays slides before generation |
+| Ready-for-draft detection | Working | `[READY_FOR_DRAFT]` marker with buffered streaming |
 
 ## What Needs Work
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Main generate endpoint | Partial | JSON parsing needs fixing |
-| PPTX file creation | Not started | python-pptx integration pending |
-| Download functionality | Placeholder | Returns 501 |
+| **PPTX file creation** | **Not started** | **python-pptx integration pending - NEXT PRIORITY** |
+| **Download functionality** | **Placeholder** | **Returns file ID, no actual file - NEXT PRIORITY** |
 | Performance | Slow | ~3.7 t/s - consider smaller model/context |
 | num_ctx parameter | Bug | Model crashes with non-default values - disabled for now |
-| Ollama model loading | Unknown | Need to investigate keep_alive and loading sequence |
+
+## Current State Summary
+
+**Sprint 1 Progress: 85%**
+
+The system now has two working modes:
+1. **Quick Mode**: User enters topic → AI generates draft → (PPTX generation pending)
+2. **Guided Mode**: User chats with AI → AI gathers requirements → Generates structured draft → (PPTX generation pending)
+
+**Next Step:** Implement PPTX file generation using python-pptx to convert drafts into downloadable PowerPoint files.

@@ -18,10 +18,11 @@
 |----------|-------|-----------|------------|
 | Project Setup | 9 | 9 | 100% |
 | Backend + Container | 22 | 22 | 100% |
+| Guided Mode | 15 | 15 | 100% |
 | PPTX Generator + Container | 17 | 10 | 59% |
 | Frontend + Container | 22 | 22 | 100% |
 | Integration & Testing | 12 | 4 | 33% |
-| **Total** | **82** | **67** | **82%** |
+| **Total** | **97** | **82** | **85%** |
 
 ---
 
@@ -77,6 +78,43 @@
 - [x] Test health endpoint with curl
 - [x] Test generate endpoint with curl (placeholder response OK)
 - [x] Verify Ollama communication works in container (streaming tested, JSON response received)
+
+---
+
+## Phase 1.5: Guided Mode (✅ COMPLETE)
+
+> **AI-assisted conversational presentation building**
+
+### Session Management
+- [x] Create `orchestrator/session_manager.py` - In-memory session store
+- [x] Implement session creation with UUID
+- [x] Implement session expiry (30 min TTL)
+- [x] Track conversation history per session
+- [x] Store draft state in session
+
+### Chat API Endpoints
+- [x] Create `orchestrator/api/chat_routes.py`
+- [x] `POST /api/v1/chat/start` - Start guided session
+- [x] `POST /api/v1/chat/{session_id}/message` - Send message (SSE stream)
+- [x] `POST /api/v1/chat/{session_id}/draft` - Generate draft from conversation
+- [x] `POST /api/v1/chat/{session_id}/generate` - Generate final presentation
+- [x] `GET /api/v1/chat/{session_id}` - Get session info
+- [x] `DELETE /api/v1/chat/{session_id}` - Delete session
+
+### Frontend Chat Interface
+- [x] Add mode toggle (Quick Mode / Guided Mode)
+- [x] Create chat message display with bubbles
+- [x] Implement streaming message rendering
+- [x] Add "Create Draft" button with pulse highlight
+- [x] Add "New Session" button for reset
+- [x] Style chat interface (dark theme)
+
+### Draft Generation
+- [x] Extend `prompts.yaml` with `guided_mode` config
+- [x] Add `draft_system_prompt` per template
+- [x] Implement `generate_from_prompt()` in OllamaClient
+- [x] Connect conversation context to draft generation
+- [x] Implement `[READY_FOR_DRAFT]` marker detection
 
 ---
 
